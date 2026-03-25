@@ -34,15 +34,52 @@ docker build -t my-debian-p10k:latest .
 
 ### 3. Запустить контейнер
 
+**Вариант А (просто и быстро):**
+
 ```bash
 docker run -it --rm my-debian-p10k:latest
 ```
 
+**Вариант B (рекомендуется — через docker-compose):**
+
+```bash
+docker compose up -d
+```
+
+```bash
+docker compose exec app zsh
+```
+
 Готово! Ты сразу окажешься в красивом терминале с Powerlevel10k.
+
+---
+
+### Работа с docker-compose (рекомендуемый способ)
+
+В проекте есть файл `docker-compose.yml`, который сильно упрощает работу.
+
+## Основные команды:
+
+|           Команда           |                 Описание                  |
+| :-------------------------: | :---------------------------------------: |
+|    docker compose build     |         Собрать/пересобрать образ         |
+|    docker compsoe up -d     |        Запустить контейнер в фоне         |
+| docker compose exec app zsh | Подключиться к контейнеру (рекомендуется) |
+| docker compose run --rm app |  Запустить новый интерактивный контейнер  |
+|     docker compose down     |      Остановить и удалить контейнер       |
+|      docker compose ps      |        Показать статус контейнеров        |
+|   docker compose logs -f    |              Посмотреть логи              |
+
+# Самая удобная ежедневная команда:
+```bash
+docker compose run --rm app
+```
+
+---
 
 ### Полезные команды
 
-|                           Команды                           |                Описание                 |
+|                           Команда                           |                Описание                 |
 | :---------------------------------------------------------: | :-------------------------------------: |
 |           docker build -t my-debian-p10k:latest .           |              Собрать образ              |
 |          docker run -it --rm my-debian-p10k:latest          |        Запустить новый контейнер        |
@@ -56,6 +93,23 @@ docker run -it --rm my-debian-p10k:latest
 ```bash
 docker build -t my-debian-p10k:latest --no-cache .
 ```
+или через compose:
+```bash
+docker compose build
+```
+
+## Структура проекта
+```text
+debian-p10k-zsh/
+├── Dockerfile
+├── docker-compose.yml
+├── dotfiles/
+│   ├── .zshrc
+│   └── .p10k.zsh
+└── README.md
+```
+
+---
 
 ### Что внутри
 

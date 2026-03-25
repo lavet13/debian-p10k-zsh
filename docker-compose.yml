@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: my-debian-p10k:latest
+    container_name: debian-p10k
+    stdin_open: true # keeps stdin open (needed for interactive shell)
+    tty: true
+    restart: unless-stopped
+
+    environment:
+      - TZ=Europe/Moscow
+
+    volumes:
+    - ./workspace:/home/devuser/workspace
+
+    working_dir: /home/devuser/workspace
