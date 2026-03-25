@@ -3,6 +3,7 @@
 Готовый удобный Docker-образ на базе Debian с современной настройкой терминала.
 
 ### Что внутри
+
 - **Debian Bookworm** (slim)
 - **Zsh** + **Oh My Zsh**
 - **Powerlevel10k** — самая красивая и быстрая тема для zsh
@@ -19,28 +20,33 @@
 ## Как быстро запустить
 
 ### 1. Клонировать репозиторий
+
 ```bash
 git clone https://github.com/lavet13/debian-p10k-zsh.git
 cd debian-p10k-zsh
 ```
 
 ### 2. Собрать Docker-образ
+
 ```bash
 docker build -t my-debian-p10k:latest .
 ```
 
 ### 3. Запустить контейнер
+
 ```bash
 docker run -it --rm my-debian-p10k:latest
 ```
+
 Готово! Ты сразу окажешься в красивом терминале с Powerlevel10k.
 
 ### Полезные команды
 
-Команды | Описание
-docker build -t my-debian-p10k:latest . | Собрать образ
-docker run -it --rm my-debian-p10k:latest | Запустить новый контейнер
-docker run -it -v "$(pwd):/workspace" my-debian-p10k:latest | Запустить с монтированием текущей папки
+|                           Команды                           |                Описание                 |
+| :---------------------------------------------------------: | :-------------------------------------: |
+|           docker build -t my-debian-p10k:latest .           |              Собрать образ              |
+|          docker run -it --rm my-debian-p10k:latest          |        Запустить новый контейнер        |
+| docker run -it -v "$(pwd):/workspace" my-debian-p10k:latest | Запустить с монтированием текущей папки |
 
 ### Как добавить свои изменения
 
@@ -52,6 +58,7 @@ docker build -t my-debian-p10k:latest --no-cache .
 ```
 
 ### Что внутри
+
 - **База**: `debian:bookworm-slim`
 - **Оболочка**: Zsh + Oh My Zsh
 - Тема: Powerlevel10k (с твоей конфигурацией)
