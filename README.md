@@ -54,28 +54,179 @@ docker compose exec app zsh
 
 ---
 
-### Работа с docker-compose (рекомендуемый способ)
+### Ежедневный workflow с docker compose
 
-В проекте есть файл `docker-compose.yml`, который сильно упрощает работу.
+В проекте есть `docker-compose.yml` с сервисом `app`. Ниже два режима работы: **постоянный** (рекомендуется) и **временный**.
 
-## Основные команды:
+#### Режим A: постоянный контейнер (рекомендуется)
 
-|           Команда           |                 Описание                  |
-| :-------------------------: | :---------------------------------------: |
-|    docker compose build     |         Собрать/пересобрать образ         |
-|    docker compsoe up -d     |        Запустить контейнер в фоне         |
-| docker compose exec app zsh | Подключиться к контейнеру (рекомендуется) |
-| docker compose run --rm app |  Запустить новый интерактивный контейнер  |
-|     docker compose down     |      Остановить и удалить контейнер       |
-|      docker compose ps      |        Показать статус контейнеров        |
-|   docker compose logs -f    |              Посмотреть логи              |
+Этот режим удобен на каждый день: контейнер живёт между сессиями, ты просто заходишь в него через `exec`.
 
-# Самая удобная ежедневная команда:
+```bash
+# 1) Пересобрать образ (когда менялся Dockerfile)
+docker compose build app
+
+# 2) Поднять контейнер в фоне
+docker compose up -d
+
+# 3) Зайти в shell внутри уже запущенного контейнера
+docker compose exec app zsh
+
+# 4) Проверить статус
+docker compose ps
+
+# 5) Остановить и удалить контейнеры проекта, когда закончил
+docker compose down
+```
+
+#### Режим B: временный контейнер (ephemeral)
+
+Этот режим создаёт одноразовый контейнер. С `--rm` он удаляется после выхода.
+
 ```bash
 docker compose run --rm app
 ```
 
+Используй этот режим, когда нужна чистая одноразовая сессия. Для повседневной работы обычно удобнее режим A.
+
+#### Полезные команды compose
+
+|            Команда            |                      Описание                       |
+| :---------------------------: | :-------------------------------------------------: |
+|  `docker compose build app`   |                Пересобрать образ app                |
+|    `docker compose up -d`     |      Запустить контейнер(ы) в фоне (detached)       |
+| `docker compose exec app zsh` |      Подключиться к уже запущенному контейнеру      |
+| `docker compose run --rm app` | Запустить новый одноразовый интерактивный контейнер |
+|     `docker compose down`     |   Остановить и удалить контейнеры и сеть проекта    |
+|      `docker compose ps`      |              Показать статус сервисов               |
+|   `docker compose logs -f`    |          Смотреть логи в реальном времени           |
+
+
 ---
+
+### Ежедневный workflow без compose (docker run + docker exec)
+
+Если не хочешь использовать `docker compose`, можно работать напрямую через `docker run`/`docker exec`.
+
+#### Вариант A: постоянный контейнер (без `--rm`)
+
+```bash
+# 1) Собрать образ
+docker build -t my-debian-p10k:latest .
+
+# 2) Запустить постоянный контейнер с именем
+docker run -it -d --name debian-p10k my-debian-p10k:latest
+
+# 3) Подключиться к уже запущенному контейнеру
+docker exec -it debian-p10k zsh
+
+# 4) Проверить, что контейнер жив
+docker ps
+
+# 5) Остановить/запустить снова при необходимости
+docker stop debian-p10k
+docker start debian-p10k
+```
+
+#### Вариант B: одноразовый контейнер (`--rm`)
+
+```bash
+docker run -it --rm my-debian-p10k:latest
+```
+
+Этот вариант полезен для быстрых тестов. Для постоянной ежедневной работы удобнее вариант A.
+
+### Сборка с фиксированной версией Neovim и nvim-конфига
+
+Можно передать версии через build args:
+
+```bash
+docker build \
+  --build-arg NVIM_VERSION=v0.11.6 \
+  --build-arg NVIM_CONFIG_REF=nvim-0.11.6 \
+  -t my-debian-p10k:latest .
+```
+
+Где `NVIM_CONFIG_REF` может быть веткой, тегом или commit SHA для воспроизводимой сборки.
+
+Проверить внутри контейнера:
+
+```bash
+nvim --version
+git -C ~/.config/nvim rev-parse --abbrev-ref HEAD
+git -C ~/.config/nvim rev-parse HEAD
+```
+
+Что делают эти две команды:
+
+- `git -C ~/.config/nvim rev-parse --abbrev-ref HEAD` — показывает **имя текущей ветки** (например `main`) в репозитории конфига.
+- `git -C ~/.config/nvim rev-parse HEAD` — показывает **точный commit SHA**, который сейчас checkout-нут.
+
+Зачем это нужно:
+
+- ты быстро видишь, что действительно оказался на нужной ветке/теге;
+- если ты пинишь `NVIM_CONFIG_REF` на commit, второй командой можно проверить полную воспроизводимость сборки.
+
+### То же самое через docker compose
+
+Если используешь `docker compose`, образ можно пересобрать с теми же build args:
+
+```bash
+docker compose build \
+  --build-arg NVIM_VERSION=v0.11.6 \
+  --build-arg NVIM_CONFIG_REF=nvim-0.11.6 app
+```
+
+После пересборки запусти контейнер и проверь версии:
+
+```bash
+docker compose run --rm app zsh -lc 'nvim --version | head -n 1; git -C ~/.config/nvim rev-parse --abbrev-ref HEAD; git -C ~/.config/nvim rev-parse HEAD'
+```
+
+### Мини cookbook: merge `--no-ff` и cherry-pick
+
+Ниже короткий практический сценарий для ветки поддержки `nvim-0.11`.
+
+```bash
+# 1) Вносим фикс в ветку поддержки
+git checkout nvim-0.11
+git pull
+git checkout -b fix/obsidian-path
+# ... правки ...
+git add .
+git commit -m "fix(obsidian): adjust workspace path handling"
+git push -u origin fix/obsidian-path
+# (создай PR в nvim-0.11 и смержи)
+```
+
+```bash
+# 2A) Перенести ВСЕ изменения из nvim-0.11 в main как отдельный merge-коммит
+git checkout main
+git pull
+git merge --no-ff nvim-0.11 -m "merge: bring nvim-0.11 maintenance updates"
+git push
+```
+
+```bash
+# 2B) Перенести только ОДИН нужный коммит в main (без полного merge)
+git checkout main
+git pull
+git log --oneline nvim-0.11
+# выбери нужный SHA, например abc1234
+git cherry-pick abc1234
+git push
+```
+
+```bash
+# 3) Создать новый стабильный snapshot-тег в ветке поддержки
+# (старый тег nvim-0.11.6 НЕ трогаем)
+git checkout nvim-0.11
+git pull
+git tag -a nvim-0.11.6-r1 -m "maintenance release for Neovim 0.11.6"
+git push origin nvim-0.11.6-r1
+```
+
+Почему `--no-ff` полезен: даже когда Git может просто "подвинуть" указатель `main`, флаг заставляет создать явный merge-коммит, чтобы в истории было видно, что изменения пришли именно из ветки `nvim-0.11`.
 
 ### Полезные команды
 
@@ -93,12 +244,15 @@ docker compose run --rm app
 ```bash
 docker build -t my-debian-p10k:latest --no-cache .
 ```
+
 или через compose:
+
 ```bash
 docker compose build
 ```
 
 ## Структура проекта
+
 ```text
 debian-p10k-zsh/
 ├── Dockerfile
