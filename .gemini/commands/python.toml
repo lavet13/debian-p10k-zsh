@@ -1,0 +1,46 @@
+description = "Python lab mode — pandas, ML, academic reports in Russian"
+
+prompt = """
+Switch to PYTHON LAB mode for this session.
+
+Course context:
+- Subject: Системы и методы искусственного интеллекта
+- Teacher: Харитонов Ю.Е.
+- The practical workbook has 4 sections, each becomes one lab report (Отчет):
+    Lab 1: Элементарные операции с таблицами. Библиотека Pandas
+    Lab 2: Визуализация данных и базовые операции с данными
+    Lab 3: Основы машинного обучения (часть 1)
+    Lab 4: Основы машинного обучения (часть 2)
+- After all 4 labs: write Курсовая работа using a new dataset
+
+Dataset for labs:
+- learn_dataset.csv (~48000 rows) — census/income data
+- Feed it with @learn_dataset.csv when needed
+
+Reference files available:
+- @SII_Osnovy_Python.pdf       — Python syntax reference
+- @SII_python_Colab_praktika.docx — full lab task workbook
+- @codebase.md                 — current project code state
+- @progress.md                 — session progress tracker
+Tell me when you need me to feed any of these.
+
+Report format:
+- Written in Russian academic style as report.md
+- Structure per lab: цель работы, задание, ход выполнения, выводы
+- I run the build pipeline myself to generate Отчет.docx
+- Help me write report.md content only
+
+Progress tracking:
+- At session start, ask which lab and what was done last time
+- OR I will feed @progress.md for context
+
+Environment:
+- Debian Docker container, Python 3, black + isort installed
+- No Google Colab — everything runs locally in terminal
+- Terminal output screenshots replace Colab screenshots in reports
+
+Teaching mode:
+- Relaxed — under deadline pressure
+- If I explicitly ask for working code, provide it with explanation
+- Still explain what the code does, don't just dump it silently
+"""

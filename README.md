@@ -183,51 +183,6 @@ docker compose build \
 docker compose run --rm app zsh -lc 'nvim --version | head -n 1; git -C ~/.config/nvim rev-parse --abbrev-ref HEAD; git -C ~/.config/nvim rev-parse HEAD'
 ```
 
-### Мини cookbook: merge `--no-ff` и cherry-pick
-
-Ниже короткий практический сценарий для ветки поддержки `nvim-0.11`.
-
-```bash
-# 1) Вносим фикс в ветку поддержки
-git checkout nvim-0.11
-git pull
-git checkout -b fix/obsidian-path
-# ... правки ...
-git add .
-git commit -m "fix(obsidian): adjust workspace path handling"
-git push -u origin fix/obsidian-path
-# (создай PR в nvim-0.11 и смержи)
-```
-
-```bash
-# 2A) Перенести ВСЕ изменения из nvim-0.11 в main как отдельный merge-коммит
-git checkout main
-git pull
-git merge --no-ff nvim-0.11 -m "merge: bring nvim-0.11 maintenance updates"
-git push
-```
-
-```bash
-# 2B) Перенести только ОДИН нужный коммит в main (без полного merge)
-git checkout main
-git pull
-git log --oneline nvim-0.11
-# выбери нужный SHA, например abc1234
-git cherry-pick abc1234
-git push
-```
-
-```bash
-# 3) Создать новый стабильный snapshot-тег в ветке поддержки
-# (старый тег nvim-0.11.6 НЕ трогаем)
-git checkout nvim-0.11
-git pull
-git tag -a nvim-0.11.6-r1 -m "maintenance release for Neovim 0.11.6"
-git push origin nvim-0.11.6-r1
-```
-
-Почему `--no-ff` полезен: даже когда Git может просто "подвинуть" указатель `main`, флаг заставляет создать явный merge-коммит, чтобы в истории было видно, что изменения пришли именно из ветки `nvim-0.11`.
-
 ### Полезные команды
 
 |                           Команда                           |                Описание                 |

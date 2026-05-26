@@ -12,7 +12,12 @@ services:
     environment:
       - TZ=Europe/Moscow
 
+    # Mount the host Docker socket so our container can spawn sibling containers.
+    # The container's docker CLI sends commands here → host's Docker Desktop daemon handles them.
     volumes:
-    - ./workspace:/home/devuser/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./workspace:/home/devuser/workspace
+      - ./.gemini:/home/devuser/.gemini  # persists GEMINI.md, commands, credentials
+      - ~/.ssh:/home/devuser/.ssh:ro
 
     working_dir: /home/devuser/workspace

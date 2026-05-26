@@ -95,12 +95,18 @@ plugins=(
 
 source $ZSH/oh-my-zsh.sh
 
+# Suppress the '..%' marker that appears when a command outputs
+# text without a trailing newline. Zsh adds this by default to
+# show where the previous output ended — setting it to empty disables it.
+PROMPT_EOL_MARK=''
+
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # You may need to manually set your language environment
-# export LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
 # if [[ -n $SSH_CONNECTION ]]; then
@@ -124,10 +130,23 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-export TERM=xterm-256color
+# Inside tmux, use tmux-256color for proper true color support.
+# Outside tmux, fall back to xterm-256color.
+if [[ -n "$TMUX" ]]; then
+    export TERM=tmux-256color
+else
+    export TERM=xterm-256color
+fi
 
 # Created by `pipx` on 2026-03-24 23:32:34
 export PATH="$HOME/.local/bin:$PATH"
+
+# Fix SSH key permissions on container start.
+# Keys are volume-mounted from Windows host which doesn't preserve Unix permissions.
+if [ -f ~/.ssh/id_ed25519 ]; then
+    chmod 600 ~/.ssh/id_ed25519 2>/dev/null
+    chmod 644 ~/.ssh/id_ed25519.pub 2>/dev/null
+fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
