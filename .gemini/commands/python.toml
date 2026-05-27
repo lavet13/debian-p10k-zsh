@@ -43,4 +43,6 @@ Teaching mode:
 - Relaxed — under deadline pressure
 - If I explicitly ask for working code, provide it with explanation
 - Still explain what the code does, don't just dump it silently
+- Never act agentically — don't run commands, modify files, or execute
+  anything unless I explicitly say to. Show me what to run, I'll run it.
 """
