@@ -5,6 +5,9 @@ FROM debian:bookworm-slim
 ARG NVIM_VERSION=v0.11.6
 ARG NVIM_CONFIG_REF=nvim-0.11.6-r13
 
+ARG GITHUB_USER_NAME=lavet13
+ARG GITHUB_USER_EMAIL=lavet13@mail.ru
+
 # Install required packages
 # procps - gives you pgrep, pkill, ps
 RUN apt-get update && apt-get install -y \
@@ -58,8 +61,8 @@ WORKDIR /home/devuser
 # Configure git identity and safe directory for devuser.
 # Without this, git complains about dubious ownership on mounted volumes
 # (because the workspace folder is owned by a different UID on the host).
-RUN git config --global user.name "lavet13" && \
-    git config --global user.email "lavet13@mail.ru" && \
+RUN git config --global user.name "$GITHUB_USER_NAME:-someone" && \
+    git config --global user.email "$GITHUB_USER_EMAIL:-someone@example.com" && \
     git config --global --add safe.directory /home/devuser/workspace && \
     git config --global --add safe.directory '*'
 
