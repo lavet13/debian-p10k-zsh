@@ -148,5 +148,10 @@ if [ -f ~/.ssh/id_ed25519 ]; then
     chmod 644 ~/.ssh/id_ed25519.pub 2>/dev/null
 fi
 
+# Always use the active python's pip, not the system one.
+# Fixes pip pointing to /usr/bin/pip even when inside a venv.
+alias pip='python3 -m pip'
+alias pip3='python3 -m pip'
+
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

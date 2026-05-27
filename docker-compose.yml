@@ -17,7 +17,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./workspace:/home/devuser/workspace
-      - ./.gemini:/home/devuser/.gemini  # persists GEMINI.md, commands, credentials
+      - ./.gemini:/home/devuser/.gemini  # persists GEMINI.md, commands
       - ~/.ssh:/home/devuser/.ssh:ro
 
     working_dir: /home/devuser/workspace
