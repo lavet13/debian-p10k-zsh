@@ -61,8 +61,8 @@ WORKDIR /home/devuser
 # Configure git identity and safe directory for devuser.
 # Without this, git complains about dubious ownership on mounted volumes
 # (because the workspace folder is owned by a different UID on the host).
-RUN git config --global user.name "$GITHUB_USER_NAME:-someone" && \
-    git config --global user.email "$GITHUB_USER_EMAIL:-someone@example.com" && \
+RUN git config --global user.name "$GITHUB_USER_NAME" && \
+    git config --global user.email "$GITHUB_USER_EMAIL" && \
     git config --global --add safe.directory /home/devuser/workspace && \
     git config --global --add safe.directory '*'
 
