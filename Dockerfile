@@ -131,7 +131,7 @@ RUN nvim --headless "+Lazy! sync" +qa 2>/dev/null || true
 # Mason package names use kebab-case and must match the Mason registry exactly.
 RUN nvim --headless \
     "+MasonInstall css-lsp eslint-lsp html-lsp intelephense json-lsp \
-    lua-language-server prettier prisma-language-server pylint pyright \
+    lua-language-server prettier prisma-language-server pyright ruff \
     stylua tailwindcss-language-server taplo typescript-language-server \
     yaml-language-server" \
     +qa 2>/dev/null || true
@@ -140,7 +140,6 @@ RUN nvim --headless \
 RUN python3 -m pip install --user --break-system-packages pipx && \
     ~/.local/bin/pipx ensurepath && \
     ~/.local/bin/pipx install tldr && \
-    ~/.local/bin/pipx install black && \
-    ~/.local/bin/pipx install isort
+    ~/.local/bin/pipx install ruff
 
 CMD ["zsh"]
