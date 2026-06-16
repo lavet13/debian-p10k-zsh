@@ -1,34 +1,51 @@
 #!/usr/bin/env bash
 #
-# wsl-setup.sh — provision a fresh WSL Debian into your dev environment.
-# Adapted from your debian-p10k-zsh Dockerfile, minus Gemini CLI.
+# wsl-setup.sh — provision a fresh WSL Debian into my dev environment.
+# Adapted from the debian-p10k-zsh Dockerfile, minus Gemini.
 #
-# Differences from the Dockerfile (on purpose):
-#   - No FROM / USER juggling: WSL already created your sudo user, so this runs
-#     AS you and just uses sudo for system steps. No devuser, no NOPASSWD sudoers.
-#   - No Docker engine / socket wiring: in WSL you use Docker Desktop's WSL
-#     integration instead (see the note at the bottom). Native dockerd is optional.
-#   - No Gemini CLI.
+# ----------------------------------------------------------------------------
+# PREREQUISITES (run these first on a fresh WSL Debian, before this script):
 #
-# Usage (inside WSL Debian):
+#   sudo apt-get update && sudo apt-get upgrade -y
+#   sudo apt-get install -y git
 #   git clone https://github.com/lavet13/debian-p10k-zsh.git
 #   cd debian-p10k-zsh
 #   bash wsl-setup.sh
 #
-# Re-running is safe-ish: the clone/install steps skip work that's already done.
+# If DNS fails on a fresh distro ("Temporary failure resolving ..."), fix that
+# BEFORE running this — it's usually a VPN KillSwitch. Either add your DNS
+# servers to the VPN client's DNS-exception list, or pin /etc/resolv.conf
+# (nameserver 1.1.1.1 / 8.8.8.8) with [network] generateResolvConf=false in
+# /etc/wsl.conf, then `wsl --shutdown` and reopen.
+# ----------------------------------------------------------------------------
+#
+# Differences from the Dockerfile (on purpose):
+#   - No FROM / USER juggling: WSL already created your sudo user.
+#   - No Docker engine: use Docker Desktop's WSL integration (note at bottom).
+#   - No Gemini CLI.
+#   - Copies SSH keys from Windows (the Dockerfile mounted them via compose).
+#
+# Safe to re-run: every step is guarded to skip or harmlessly reapply. The one
+# exception is the dotfiles copy, which always overwrites ~/.zshrc etc. from the
+# repo (the repo is the source of truth — local edits there get replaced).
 
 set -euo pipefail
 
 # ============================ Config (edit me) ============================
 NVIM_VERSION="v0.11.6"
-NVIM_CONFIG_REF="nvim-0.11.6-r17"            # branch / tag / commit for reproducibility
+NVIM_CONFIG_REF="nvim-0.11.6-r17"
 NVIM_CONFIG_REPO="https://github.com/lavet13/nvim-lsp.git"
 DOTFILES_REPO="https://github.com/lavet13/debian-p10k-zsh.git"   # fallback if run standalone
+NOTES_REPO="https://github.com/lavet13/notes-obsidian.git"
 GIT_USER_NAME="lavet13"
 GIT_USER_EMAIL="lavet13@mail.ru"
 NODE_MAJOR="22"
 
-# Where to find the dotfiles: prefer the repo this script lives in, else clone.
+# Windows username (for copying SSH keys). Auto-detected from the host; override
+# by exporting WIN_USER before running if detection fails.
+WIN_USER="${WIN_USER:-$(cmd.exe /c 'echo %USERNAME%' 2>/dev/null | tr -d '\r\n')}"
+
+# Dotfiles: prefer the repo this script lives in, else clone.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -d "$SCRIPT_DIR/dotfiles" ]; then
   DOTFILES="$SCRIPT_DIR/dotfiles"
@@ -38,12 +55,9 @@ else
   git clone --depth=1 "$DOTFILES_REPO" "$CLONED_DOTFILES"
   DOTFILES="$CLONED_DOTFILES/dotfiles"
 fi
-
 echo ">>> Using dotfiles from: $DOTFILES"
 
 # ============================ 1. System packages ==========================
-# locales-all so en_US.UTF-8 exists (your .zshrc exports LANG/LC_ALL=en_US.UTF-8).
-# procps gives pgrep/pkill/ps (tmux-sessionizer uses pgrep).
 sudo apt-get update
 sudo apt-get install -y \
   zsh tmux fzf procps locales-all git curl ca-certificates \
@@ -52,15 +66,14 @@ sudo apt-get install -y \
   build-essential
 
 # ============================ 2. Node.js + corepack =======================
-# NodeSource adds an apt repo pinned to a major version. corepack gives you the
-# yarn/pnpm shims (you use Yarn 4 via corepack).
-curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | sudo -E bash -
-sudo apt-get install -y nodejs
+# Skip the NodeSource repo step if the right major is already installed.
+if ! command -v node >/dev/null 2>&1 || ! node -v | grep -q "^v${NODE_MAJOR}\."; then
+  curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | sudo -E bash -
+  sudo apt-get install -y nodejs
+fi
 sudo corepack enable
 
 # ============================ 3. Neovim (pinned tarball) ==================
-# Same approach as the Dockerfile: grab the official release, drop it in /opt,
-# symlink the binary onto PATH.
 if [ ! -x /usr/local/bin/nvim ] || ! nvim --version 2>/dev/null | grep -q "${NVIM_VERSION#v}"; then
   tmp_nvim="$(mktemp -d)"
   curl -L "https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-linux-x86_64.tar.gz" \
@@ -75,63 +88,74 @@ fi
 # ============================ 4. Git identity =============================
 git config --global user.name  "$GIT_USER_NAME"
 git config --global user.email "$GIT_USER_EMAIL"
-# Avoid "dubious ownership" complaints on repos that cross the Windows/WSL boundary.
 git config --global --add safe.directory '*'
+# Leave line endings alone on commit-from-Linux; .gitattributes still wins per-repo.
+git config --global core.autocrlf input
 
-# ============================ 5. Oh My Zsh + p10k + plugins ===============
+# ============================ 5. SSH keys from Windows ====================
+# WSL has no ~/.ssh mount, so copy keys over and fix Unix permissions.
+WIN_SSH="/mnt/c/Users/${WIN_USER}/.ssh"
+if [ -n "$WIN_USER" ] && [ -d "$WIN_SSH" ]; then
+  echo ">>> Copying SSH keys from $WIN_SSH"
+  mkdir -p "$HOME/.ssh"
+  cp "$WIN_SSH"/id_* "$HOME/.ssh/" 2>/dev/null || true
+  [ -f "$WIN_SSH/config" ] && cp "$WIN_SSH/config" "$HOME/.ssh/config"
+  chmod 700 "$HOME/.ssh"
+  find "$HOME/.ssh" -type f -name 'id_*' ! -name '*.pub' -exec chmod 600 {} +
+  find "$HOME/.ssh" -type f -name '*.pub'                -exec chmod 644 {} +
+  [ -f "$HOME/.ssh/config" ] && chmod 600 "$HOME/.ssh/config"
+else
+  echo ">>> No Windows ~/.ssh found (WIN_USER='$WIN_USER'); skipping SSH copy."
+fi
+
+# ============================ 6. Oh My Zsh + p10k + plugins ===============
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
   sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 fi
-
 ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-
 [ -d "$ZSH_CUSTOM/themes/powerlevel10k" ] || \
   git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM/themes/powerlevel10k"
-
 [ -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] || \
   git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
-
 [ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || \
   git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 
-# ============================ 6. Neovim config (pinned ref) ===============
+# ============================ 7. Neovim config (pinned ref) ===============
 if [ ! -d "$HOME/.config/nvim" ]; then
   mkdir -p "$HOME/.config"
   git clone "$NVIM_CONFIG_REPO" "$HOME/.config/nvim"
   git -C "$HOME/.config/nvim" checkout "$NVIM_CONFIG_REF"
 fi
 
-# ============================ 7. obsidian.nvim workspaces =================
-# obsidian.nvim errors on startup if a configured workspace path is missing.
-# These must match the workspaces in your nvim config (including chzzk-dl-live).
+# ============================ 8. Notes (obsidian.nvim) ====================
+# Clone the notes repo; its folders are the obsidian.nvim workspaces.
+if [ ! -d "$HOME/notes/.git" ]; then
+  git clone "$NOTES_REPO" "$HOME/notes"
+fi
+# Safety net: guarantee every configured workspace exists even if the repo lacks one,
+# otherwise obsidian.nvim errors on startup.
 mkdir -p "$HOME/notes/personal" "$HOME/notes/donbass-post" \
          "$HOME/notes/donbass-tour" "$HOME/notes/chzzk-dl-live"
 
-# ============================ 8. Dotfiles =================================
-cp "$DOTFILES/.zshrc"    "$HOME/.zshrc"
-cp "$DOTFILES/.p10k.zsh" "$HOME/.p10k.zsh"
+# ============================ 9. Dotfiles =================================
+cp "$DOTFILES/.zshrc"     "$HOME/.zshrc"
+cp "$DOTFILES/.p10k.zsh"  "$HOME/.p10k.zsh"
 cp "$DOTFILES/.tmux.conf" "$HOME/.tmux.conf"
 mkdir -p "$HOME/.local/bin"
 cp "$DOTFILES/tmux-sessionizer" "$HOME/.local/bin/tmux-sessionizer"
 chmod +x "$HOME/.local/bin/tmux-sessionizer"
-
-# Strip any CRLF that rode along from the Windows side — zsh/tmux break silently on \r.
+# Strip any CRLF that rode along from Windows — zsh/tmux break silently on \r.
 sed -i 's/\r$//' "$HOME/.zshrc" "$HOME/.p10k.zsh" "$HOME/.tmux.conf" \
   "$HOME/.local/bin/tmux-sessionizer"
+mkdir -p "$HOME/workspace"   # tmux-sessionizer searches here
 
-# tmux-sessionizer searches ~/workspace — make sure it exists.
-mkdir -p "$HOME/workspace"
-
-# ============================ 9. pipx + CLIs ==============================
-# Debian's Python is "externally managed" (PEP 668), hence --break-system-packages.
+# ============================ 10. pipx + CLIs =============================
 python3 -m pip install --user --break-system-packages pipx
 "$HOME/.local/bin/pipx" ensurepath
-"$HOME/.local/bin/pipx" install tldr || true
+"$HOME/.local/bin/pipx" install tldr || true   # already-installed exits non-zero
 "$HOME/.local/bin/pipx" install ruff || true
 
-# ============================ 10. Pre-warm Neovim =========================
-# Sync lazy.nvim plugins, then install your Mason tools (same list as the Dockerfile).
-# "|| true" so a non-fatal plugin warning doesn't abort the whole script.
+# ============================ 11. Pre-warm Neovim =========================
 nvim --headless "+Lazy! sync" +qa 2>/dev/null || true
 nvim --headless \
   "+MasonInstall css-lsp eslint-lsp html-lsp intelephense json-lsp \
@@ -140,27 +164,18 @@ nvim --headless \
    yaml-language-server" \
   +qa 2>/dev/null || true
 
-# ============================ 11. Default shell -> zsh ====================
+# ============================ 12. Default shell -> zsh ====================
 sudo chsh -s "$(command -v zsh)" "$USER"
 
 # ============================ Cleanup =====================================
 [ -n "$CLONED_DOTFILES" ] && rm -rf "$CLONED_DOTFILES"
 
 echo ""
-echo ">>> Done."
-echo ">>> Run 'wsl --shutdown' from PowerShell, then reopen Debian — you'll land in zsh."
-echo ""
+echo ">>> Done. Run 'wsl --shutdown' from PowerShell/CMD/MINGW64, then reopen Debian — you'll land in zsh."
 
 # ===================== OPTIONAL: Docker inside WSL ========================
-# Your Dockerfile installed docker-ce because it was a container talking to the
-# host socket. In WSL you have two cleaner choices instead:
-#
-#   1. (recommended) Docker Desktop on Windows → Settings → Resources →
-#      WSL Integration → toggle Debian on. `docker` then works in WSL with
-#      ZERO install here.
-#
-#   2. (no Docker Desktop) Native dockerd. Requires systemd in WSL:
-#        printf '[boot]\nsystemd=true\n' | sudo tee /etc/wsl.conf
-#        # then `wsl --shutdown`, reopen, install docker-ce from Docker's apt repo,
-#        # and `sudo systemctl enable --now docker`.
-#      This is heavier and only worth it if you're avoiding Docker Desktop.
+# Prefer Docker Desktop -> Settings -> Resources -> WSL Integration -> toggle
+# Debian on; `docker` then works in WSL with zero install here. Native dockerd
+# is possible but needs systemd (printf '[boot]\nsystemd=true\n' | sudo tee
+# /etc/wsl.conf, then `wsl --shutdown`) and reintroduces systemd-resolved DNS
+# management — only worth it if you're avoiding Docker Desktop.
