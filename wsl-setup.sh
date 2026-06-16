@@ -129,8 +129,18 @@ fi
 
 # ============================ 8. Notes (obsidian.nvim) ====================
 # Clone the notes repo; its folders are the obsidian.nvim workspaces.
+# Handle a pre-existing ~/notes (e.g. an earlier run that only mkdir'd the empty
+# workspace dirs): git clone refuses a non-empty target, so graft the clone in
+# via a temp dir without clobbering any local files.
 if [ ! -d "$HOME/notes/.git" ]; then
-  git clone "$NOTES_REPO" "$HOME/notes"
+  if [ -d "$HOME/notes" ] && [ -n "$(ls -A "$HOME/notes" 2>/dev/null)" ]; then
+    tmp_notes="$(mktemp -d)"
+    git clone "$NOTES_REPO" "$tmp_notes"
+    cp -rn "$tmp_notes/." "$HOME/notes/"
+    rm -rf "$tmp_notes"
+  else
+    git clone "$NOTES_REPO" "$HOME/notes"   # works for absent or empty dir
+  fi
 fi
 # Safety net: guarantee every configured workspace exists even if the repo lacks one,
 # otherwise obsidian.nvim errors on startup.
