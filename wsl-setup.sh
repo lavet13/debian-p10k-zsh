@@ -98,12 +98,14 @@ WIN_SSH="/mnt/c/Users/${WIN_USER}/.ssh"
 if [ -n "$WIN_USER" ] && [ -d "$WIN_SSH" ]; then
   echo ">>> Copying SSH keys from $WIN_SSH"
   mkdir -p "$HOME/.ssh"
-  cp "$WIN_SSH"/id_* "$HOME/.ssh/" 2>/dev/null || true
-  [ -f "$WIN_SSH/config" ] && cp "$WIN_SSH/config" "$HOME/.ssh/config"
+  # Copy everything — named keys (deploy_key, github_actions_key), id_*, config,
+  # known_hosts. Windows ~/.ssh is the source of truth.
+  cp -r "$WIN_SSH"/. "$HOME/.ssh/"
+  # Permissions: dir 700; lock every file to 600 by default (correct for ANY
+  # private key regardless of its name), then relax the non-secret ones to 644.
   chmod 700 "$HOME/.ssh"
-  find "$HOME/.ssh" -type f -name 'id_*' ! -name '*.pub' -exec chmod 600 {} +
-  find "$HOME/.ssh" -type f -name '*.pub'                -exec chmod 644 {} +
-  [ -f "$HOME/.ssh/config" ] && chmod 600 "$HOME/.ssh/config"
+  find "$HOME/.ssh" -type f -exec chmod 600 {} +
+  find "$HOME/.ssh" -type f \( -name '*.pub' -o -name 'known_hosts*' \) -exec chmod 644 {} +
 else
   echo ">>> No Windows ~/.ssh found (WIN_USER='$WIN_USER'); skipping SSH copy."
 fi
