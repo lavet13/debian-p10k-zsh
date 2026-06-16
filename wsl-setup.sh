@@ -21,7 +21,7 @@ set -euo pipefail
 
 # ============================ Config (edit me) ============================
 NVIM_VERSION="v0.11.6"
-NVIM_CONFIG_REF="nvim-0.11.6-r14"            # branch / tag / commit for reproducibility
+NVIM_CONFIG_REF="nvim-0.11.6-r17"            # branch / tag / commit for reproducibility
 NVIM_CONFIG_REPO="https://github.com/lavet13/nvim-lsp.git"
 DOTFILES_REPO="https://github.com/lavet13/debian-p10k-zsh.git"   # fallback if run standalone
 GIT_USER_NAME="lavet13"

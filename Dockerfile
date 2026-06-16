@@ -3,7 +3,7 @@ FROM debian:bookworm-slim
 # Pin the Neovim binary version and (optionally) the nvim config ref.
 # Use a git branch/tag/commit SHA for NVIM_CONFIG_REF.
 ARG NVIM_VERSION=v0.11.6
-ARG NVIM_CONFIG_REF=nvim-0.11.6-r14
+ARG NVIM_CONFIG_REF=nvim-0.11.6-r17
 
 ARG GITHUB_USER_NAME=lavet13
 ARG GITHUB_USER_EMAIL=lavet13@mail.ru
