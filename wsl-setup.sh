@@ -74,6 +74,7 @@ fi
 sudo corepack enable
 
 # ============================ 3. Neovim (pinned tarball) ==================
+# ! -x means it's either missing or lacks execute permission
 if [ ! -x /usr/local/bin/nvim ] || ! nvim --version 2>/dev/null | grep -q "${NVIM_VERSION#v}"; then
   tmp_nvim="$(mktemp -d)"
   curl -L "https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-linux-x86_64.tar.gz" \
@@ -88,7 +89,7 @@ fi
 # ============================ 4. Git identity =============================
 git config --global user.name  "$GIT_USER_NAME"
 git config --global user.email "$GIT_USER_EMAIL"
-git config --global --add safe.directory '*'
+git config --global --add safe.directory '*' # stops git's "dubious ownership" refusal on repos that straddle the Windows/WSL boundary (different ownership metadata)
 # Leave line endings alone on commit-from-Linux; .gitattributes still wins per-repo.
 git config --global core.autocrlf input
 
@@ -112,6 +113,7 @@ fi
 
 # ============================ 6. Oh My Zsh + p10k + plugins ===============
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
+  # unattended flag means stop launching only if OMZ is absent
   sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 fi
 ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
@@ -138,19 +140,16 @@ if [ ! -d "$HOME/notes/.git" ]; then
   if [ -d "$HOME/notes" ] && [ -n "$(ls -A "$HOME/notes" 2>/dev/null)" ]; then
     tmp_notes="$(mktemp -d)"
     git clone "$NOTES_REPO" "$tmp_notes"
-    cp -rn "$tmp_notes/." "$HOME/notes/"
+    cp -r --update=none "$tmp_notes/." "$HOME/notes/"
     rm -rf "$tmp_notes"
   else
     git clone "$NOTES_REPO" "$HOME/notes"   # works for absent or empty dir
   fi
 fi
-# Safety net: guarantee every configured workspace exists even if the repo lacks one,
-# otherwise obsidian.nvim errors on startup.
-mkdir -p "$HOME/notes/personal" "$HOME/notes/donbass-post" \
-         "$HOME/notes/donbass-tour" "$HOME/notes/chzzk-dl-live"
 
 # ============================ 9. Dotfiles =================================
 cp "$DOTFILES/.zshrc"     "$HOME/.zshrc"
+cp "$DOTFILES/.zshenv"    "$HOME/.zshenv"
 cp "$DOTFILES/.p10k.zsh"  "$HOME/.p10k.zsh"
 cp "$DOTFILES/.tmux.conf" "$HOME/.tmux.conf"
 mkdir -p "$HOME/.local/bin"
@@ -165,7 +164,7 @@ mkdir -p "$HOME/workspace"   # tmux-sessionizer searches here
 python3 -m pip install --user --break-system-packages pipx
 "$HOME/.local/bin/pipx" ensurepath
 "$HOME/.local/bin/pipx" install tldr || true   # already-installed exits non-zero
-"$HOME/.local/bin/pipx" install ruff || true
+"$HOME/.local/bin/pipx" install ruff || true   # already-installed exits non-zero
 
 # ============================ 11. Pre-warm Neovim =========================
 nvim --headless "+Lazy! sync" +qa 2>/dev/null || true

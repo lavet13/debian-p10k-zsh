@@ -138,9 +138,6 @@ else
     export TERM=xterm-256color
 fi
 
-# Created by `pipx` on 2026-03-24 23:32:34
-export PATH="$HOME/.local/bin:$PATH"
-
 # Fix SSH key permissions on container start.
 # Keys are volume-mounted from Windows host which doesn't preserve Unix permissions.
 if [ -f ~/.ssh/id_ed25519 ]; then
