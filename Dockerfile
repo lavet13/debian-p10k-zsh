@@ -70,7 +70,9 @@ RUN usermod -aG root devuser
 
 # Install Gemini CLI globally via npm.
 # Requires Node 20+, which is why we installed from NodeSource above.
-RUN npm install -g @google/gemini-cli
+# (Off Gemini now? Delete this RUN — the WSL script already omits it. Node stays
+#  for corepack/Yarn regardless.)
+# RUN npm install -g @google/gemini-cli
 
 USER devuser
 WORKDIR /home/devuser
@@ -78,10 +80,13 @@ WORKDIR /home/devuser
 # Configure git identity and safe directory for devuser.
 # Without this, git complains about dubious ownership on mounted volumes
 # (because the workspace folder is owned by a different UID on the host).
+# core.autocrlf input added to mirror wsl-setup.sh: normalize CRLF->LF on commit,
+# never inject CRLF on checkout (.gitattributes still wins per-repo).
 RUN git config --global user.name "$GITHUB_USER_NAME" && \
     git config --global user.email "$GITHUB_USER_EMAIL" && \
     git config --global --add safe.directory /home/devuser/workspace && \
-    git config --global --add safe.directory '*'
+    git config --global --add safe.directory '*' && \
+    git config --global core.autocrlf input
 
 # Install Oh My Zsh (unattended)
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
@@ -102,8 +107,15 @@ RUN mkdir -p "$HOME/.config" && \
     cd "$HOME/.config/nvim" && \
     git checkout "$NVIM_CONFIG_REF"
 
-# Prevent obsidian.nvim startup error by creating expected note workspaces
-RUN mkdir -p "$HOME/notes/personal" "$HOME/notes/donbass-post" "$HOME/notes/donbass-tour"
+# Clone the notes repo (obsidian.nvim workspaces). Mirrors wsl-setup.sh — the repo
+# is the single source of truth, and this brings in the chzzk-dl-live workspace
+# the older mkdir list was missing.
+# NOTE: this bakes a BUILD-TIME SNAPSHOT into the image. `git -C ~/notes pull`
+# inside the container to refresh, or rebuild. If you'd rather keep the image
+# notes-free, swap this line for:
+#   RUN mkdir -p "$HOME/notes/personal" "$HOME/notes/donbass-post" \
+#               "$HOME/notes/donbass-tour" "$HOME/notes/chzzk-dl-live"
+RUN git clone https://github.com/lavet13/notes-obsidian.git "$HOME/notes"
 
 # --chown ensures copied files are owned by devuser, not root.
 # Without this, COPY always creates files owned by root even after USER devuser.

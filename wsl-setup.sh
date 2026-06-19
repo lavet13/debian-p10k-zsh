@@ -68,7 +68,7 @@ trap cleanup EXIT
 sudo apt-get update
 sudo apt-get install -y \
   zsh tmux fzf procps locales-all git curl ca-certificates \
-  ripgrep fd-find unzip \
+  ripgrep fd-find unzip shellcheck \
   python3 python3-pip python3-venv \
   build-essential
 
