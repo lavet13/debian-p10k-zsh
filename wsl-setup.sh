@@ -57,6 +57,13 @@ else
 fi
 echo ">>> Using dotfiles from: $DOTFILES"
 
+cleanup() {
+  # ${VAR:-} guards against set -u if we die before CLONED_DOTFILES is even set.
+  [ -n "${CLONED_DOTFILES:-}" ] && rm -rf "$CLONED_DOTFILES"
+}
+
+trap cleanup EXIT
+
 # ============================ 1. System packages ==========================
 sudo apt-get update
 sudo apt-get install -y \
@@ -101,7 +108,7 @@ if [ -n "$WIN_USER" ] && [ -d "$WIN_SSH" ]; then
   mkdir -p "$HOME/.ssh"
   # Copy everything — named keys (deploy_key, github_actions_key), id_*, config,
   # known_hosts. Windows ~/.ssh is the source of truth.
-  cp -r "$WIN_SSH"/. "$HOME/.ssh/"
+  cp -rT "$WIN_SSH" "$HOME/.ssh/"
   # Permissions: dir 700; lock every file to 600 by default (correct for ANY
   # private key regardless of its name), then relax the non-secret ones to 644.
   chmod 700 "$HOME/.ssh"
@@ -125,11 +132,16 @@ ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
   git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 
 # ============================ 7. Neovim config (pinned ref) ===============
-if [ ! -d "$HOME/.config/nvim" ]; then
+# Clone if absent; otherwise fetch so a re-run can move to a newer pinned ref.
+if [ ! -d "$HOME/.config/nvim/.git" ]; then
   mkdir -p "$HOME/.config"
   git clone "$NVIM_CONFIG_REPO" "$HOME/.config/nvim"
-  git -C "$HOME/.config/nvim" checkout "$NVIM_CONFIG_REF"
+else
+  git -C "$HOME/.config/nvim" fetch --tags --prune origin # learn new tags like r18
 fi
+
+# Always land on the pinned ref - runs on both fresh clone and update.
+git -C "$HOME/.config/nvim" checkout "$NVIM_CONFIG_REF"
 
 # ============================ 8. Notes (obsidian.nvim) ====================
 # Clone the notes repo; its folders are the obsidian.nvim workspaces.
@@ -140,11 +152,15 @@ if [ ! -d "$HOME/notes/.git" ]; then
   if [ -d "$HOME/notes" ] && [ -n "$(ls -A "$HOME/notes" 2>/dev/null)" ]; then
     tmp_notes="$(mktemp -d)"
     git clone "$NOTES_REPO" "$tmp_notes"
-    cp -r --update=none "$tmp_notes/." "$HOME/notes/"
+    cp -rT --update=none "$tmp_notes" "$HOME/notes/"
     rm -rf "$tmp_notes"
   else
     git clone "$NOTES_REPO" "$HOME/notes"   # works for absent or empty dir
   fi
+else
+  # Already a clone — bring it up to date. --ff-only refuses to make a merge
+  # commit: if your local notes diverged, it stops loudly instead of tangling them.
+  git -C "$HOME/notes" pull --ff-only
 fi
 
 # ============================ 9. Dotfiles =================================
