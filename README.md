@@ -1,229 +1,108 @@
-# Debian + Zsh + Powerlevel10k Docker Image
+# Debian + Zsh + Powerlevel10k — провижининг WSL
 
-Готовый удобный Docker-образ на базе Debian с современной настройкой терминала.
+Скрипт `wsl-setup.sh` быстро превращает свежий **WSL Debian** в готовое окружение
+разработки: zsh + Powerlevel10k, Neovim, tmux, Node и нужные инструменты.
 
-### Что внутри
-
-- **Debian Bookworm** (slim)
-- **Zsh** + **Oh My Zsh**
-- **Powerlevel10k** — самая красивая и быстрая тема для zsh
-- Полезные плагины:
-  - `zsh-autosuggestions`
-  - `zsh-syntax-highlighting`
-  - `git`
-- `pipx` + `tldr`
-- Часовой пояс **Europe/Moscow**
-- Чистая и удобная конфигурация `.zshrc`
+Раньше это был Docker-образ. Теперь всё ставится **прямо в WSL** — нативная
+файловая система ext4 заметно быстрее, чем bind-mount больших проектов в Docker
+через границу Windows ↔ Linux.
 
 ---
 
-## Как быстро запустить
+## Что внутри
 
-### 1. Клонировать репозиторий
+- **Zsh** + **Oh My Zsh** + **Powerlevel10k**
+- Плагины: `zsh-autosuggestions`, `zsh-syntax-highlighting`, `git`
+- **Neovim** (закреплённая версия, бинарник из официального релиза) + конфиг
+  [`nvim-lsp`](https://github.com/lavet13/nvim-lsp) + Mason LSP-серверы и форматтеры
+- **tmux** + `tmux-sessionizer` (fzf-переключатель проектов)
+- **Node.js** (NodeSource) + `corepack` (для Yarn)
+- `pipx` + `tldr` + `ruff`, клиент **cheat.sh** (`cht.sh`), `shellcheck`, `info` + `bash-doc`
+- Dotfiles: `.zshrc`, `.zshenv`, `.p10k.zsh`, `.tmux.conf`
+- Заметки для obsidian.nvim (клон [`notes-obsidian`](https://github.com/lavet13/notes-obsidian))
+- SSH-ключи копируются из Windows (`/mnt/c/Users/<user>/.ssh`)
+
+---
+
+## Установка
+
+На свежем WSL Debian сначала выполни (нужен `git`, чтобы склонировать репозиторий):
 
 ```bash
+sudo apt-get update && sudo apt-get upgrade -y
+sudo apt-get install -y git
 git clone https://github.com/lavet13/debian-p10k-zsh.git
 cd debian-p10k-zsh
+bash wsl-setup.sh
 ```
 
-### 2. Собрать Docker-образ
+После завершения:
 
 ```bash
-docker build -t my-debian-p10k:latest .
+wsl --shutdown   # из PowerShell / CMD / MINGW64
 ```
 
-### 3. Запустить контейнер
+Снова открой Debian — окажешься в zsh.
 
-**Вариант А (просто и быстро):**
-
-```bash
-docker run -it --rm my-debian-p10k:latest
-```
-
-**Вариант B (рекомендуется — через docker-compose):**
-
-```bash
-docker compose up -d
-```
-
-```bash
-docker compose exec app zsh
-```
-
-Готово! Ты сразу окажешься в красивом терминале с Powerlevel10k.
+> **Если на свежем дистрибутиве не работает DNS** («Temporary failure resolving …»),
+> почини это **до** запуска скрипта — обычно виноват KillSwitch VPN. Либо добавь
+> DNS-серверы в исключения VPN-клиента, либо закрепи `/etc/resolv.conf`
+> (`nameserver 1.1.1.1` / `8.8.8.8`) с `[network] generateResolvConf=false` в
+> `/etc/wsl.conf`, затем `wsl --shutdown` и открой заново.
 
 ---
 
-### Ежедневный workflow с docker compose
+## Что делает скрипт
 
-В проекте есть `docker-compose.yml` с сервисом `app`. Ниже два режима работы: **постоянный** (рекомендуется) и **временный**.
+1. Системные пакеты (zsh, tmux, fzf, ripgrep, fd-find, shellcheck, info, bash-doc и т.д.)
+2. Node.js + corepack (пропускается, если нужная мажорная версия уже стоит)
+3. Neovim — закреплённый тарбол в `/opt/nvim`, симлинк в `/usr/local/bin`
+4. Git-идентичность + `core.autocrlf input`
+5. Копирование SSH-ключей из Windows + правка прав; добавление `github.com` в `known_hosts`
+6. Oh My Zsh + Powerlevel10k + плагины
+7. Конфиг Neovim — клон `nvim-lsp` (живой рабочий клон на ветке `main`)
+8. Заметки — клон `notes-obsidian` (или `git pull --ff-only`, если уже склонировано)
+9. Dotfiles + удаление CRLF
+10. pipx + tldr + ruff + клиент cheat.sh
+11. Прогрев Neovim: `Lazy! restore` (по lock-файлу) + установка Mason-пакетов
+12. Смена оболочки по умолчанию на zsh
 
-#### Режим A: постоянный контейнер (рекомендуется)
-
-Этот режим удобен на каждый день: контейнер живёт между сессиями, ты просто заходишь в него через `exec`.
-
-```bash
-# 1) Пересобрать образ (когда менялся Dockerfile)
-docker compose build app
-
-# 2) Поднять контейнер в фоне
-docker compose up -d
-
-# 3) Зайти в shell внутри уже запущенного контейнера
-docker compose exec app zsh
-
-# 4) Проверить статус
-docker compose ps
-
-# 5) Остановить и удалить контейнеры проекта, когда закончил
-docker compose down
-```
-
-#### Режим B: временный контейнер (ephemeral)
-
-Этот режим создаёт одноразовый контейнер. С `--rm` он удаляется после выхода.
-
-```bash
-docker compose run --rm app
-```
-
-Используй этот режим, когда нужна чистая одноразовая сессия. Для повседневной работы обычно удобнее режим A.
-
-#### Полезные команды compose
-
-|            Команда            |                      Описание                       |
-| :---------------------------: | :-------------------------------------------------: |
-|  `docker compose build app`   |                Пересобрать образ app                |
-|    `docker compose up -d`     |      Запустить контейнер(ы) в фоне (detached)       |
-| `docker compose exec app zsh` |      Подключиться к уже запущенному контейнеру      |
-| `docker compose run --rm app` | Запустить новый одноразовый интерактивный контейнер |
-|     `docker compose down`     |   Остановить и удалить контейнеры и сеть проекта    |
-|      `docker compose ps`      |              Показать статус сервисов               |
-|   `docker compose logs -f`    |          Смотреть логи в реальном времени           |
-
+Скрипт **идемпотентен** — каждый шаг либо пропускается, либо безопасно
+применяется повторно. Исключение: dotfiles всегда перезаписываются из
+репозитория (репозиторий — источник истины).
 
 ---
 
-### Ежедневный workflow без compose (docker run + docker exec)
+## Кастомизация
 
-Если не хочешь использовать `docker compose`, можно работать напрямую через `docker run`/`docker exec`.
+- **Dotfiles**: правь файлы в `dotfiles/`, коммить и пушь — следующий запуск
+  скрипта их подхватит.
+- **Конфиг Neovim**: `~/.config/nvim` — это живой рабочий клон `nvim-lsp` на
+  ветке `main`. Правь на месте, коммить, пушь. Плагины: `:Lazy sync` обновляет
+  их и lock-файл — коммить новый `lazy-lock.json`, когда обновляешься осознанно.
 
-#### Вариант A: постоянный контейнер (без `--rm`)
-
-```bash
-# 1) Собрать образ
-docker build -t my-debian-p10k:latest .
-
-# 2) Запустить постоянный контейнер с именем
-docker run -it -d --name debian-p10k my-debian-p10k:latest
-
-# 3) Подключиться к уже запущенному контейнеру
-docker exec -it debian-p10k zsh
-
-# 4) Проверить, что контейнер жив
-docker ps
-
-# 5) Остановить/запустить снова при необходимости
-docker stop debian-p10k
-docker start debian-p10k
-```
-
-#### Вариант B: одноразовый контейнер (`--rm`)
-
-```bash
-docker run -it --rm my-debian-p10k:latest
-```
-
-Этот вариант полезен для быстрых тестов. Для постоянной ежедневной работы удобнее вариант A.
-
-### Сборка с фиксированной версией Neovim и nvim-конфига
-
-Можно передать версии через build args:
-
-```bash
-docker build \
-  --build-arg NVIM_VERSION=v0.11.6 \
-  --build-arg NVIM_CONFIG_REF=nvim-0.11.6 \
-  -t my-debian-p10k:latest .
-```
-
-Где `NVIM_CONFIG_REF` может быть веткой, тегом или commit SHA для воспроизводимой сборки.
-
-Проверить внутри контейнера:
-
-```bash
-nvim --version
-git -C ~/.config/nvim rev-parse --abbrev-ref HEAD
-git -C ~/.config/nvim rev-parse HEAD
-```
-
-Что делают эти две команды:
-
-- `git -C ~/.config/nvim rev-parse --abbrev-ref HEAD` — показывает **имя текущей ветки** (например `main`) в репозитории конфига.
-- `git -C ~/.config/nvim rev-parse HEAD` — показывает **точный commit SHA**, который сейчас checkout-нут.
-
-Зачем это нужно:
-
-- ты быстро видишь, что действительно оказался на нужной ветке/теге;
-- если ты пинишь `NVIM_CONFIG_REF` на commit, второй командой можно проверить полную воспроизводимость сборки.
-
-### То же самое через docker compose
-
-Если используешь `docker compose`, образ можно пересобрать с теми же build args:
-
-```bash
-docker compose build \
-  --build-arg NVIM_VERSION=v0.11.6 \
-  --build-arg NVIM_CONFIG_REF=nvim-0.11.6 app
-```
-
-После пересборки запусти контейнер и проверь версии:
-
-```bash
-docker compose run --rm app zsh -lc 'nvim --version | head -n 1; git -C ~/.config/nvim rev-parse --abbrev-ref HEAD; git -C ~/.config/nvim rev-parse HEAD'
-```
-
-### Полезные команды
-
-|                           Команда                           |                Описание                 |
-| :---------------------------------------------------------: | :-------------------------------------: |
-|           docker build -t my-debian-p10k:latest .           |              Собрать образ              |
-|          docker run -it --rm my-debian-p10k:latest          |        Запустить новый контейнер        |
-| docker run -it -v "$(pwd):/workspace" my-debian-p10k:latest | Запустить с монтированием текущей папки |
-
-### Как добавить свои изменения
-
-- Отредактируй файлы в папке `dotfiles/` (`.zshrc` или `.p10k.zsh`)
-- Пересобери образ
-
-```bash
-docker build -t my-debian-p10k:latest --no-cache .
-```
-
-или через compose:
-
-```bash
-docker compose build
-```
+---
 
 ## Структура проекта
 
 ```text
 debian-p10k-zsh/
-├── Dockerfile
-├── docker-compose.yml
+├── wsl-setup.sh
 ├── dotfiles/
 │   ├── .zshrc
-│   └── .p10k.zsh
+│   ├── .zshenv
+│   ├── .p10k.zsh
+│   ├── .tmux.conf
+│   └── tmux-sessionizer
+├── .gitattributes        # * text=auto eol=lf — единые LF во всём репозитории
 └── README.md
 ```
 
 ---
 
-### Что внутри
+## Docker для проектов (не для окружения)
 
-- **База**: `debian:bookworm-slim`
-- **Оболочка**: Zsh + Oh My Zsh
-- Тема: Powerlevel10k (с твоей конфигурацией)
-- Плагины: autosuggestions, syntax-highlighting, git
-- Утилиты: tldr, pipx, git, curl и другие
+Если Docker нужен для самих проектов (например, Postgres/Prisma у бота), не ставь
+демон в WSL вручную — включи **Docker Desktop → Settings → Resources → WSL
+Integration** для Debian. После этого `docker` работает в WSL без дополнительной
+установки.
