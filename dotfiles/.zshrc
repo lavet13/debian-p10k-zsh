@@ -138,6 +138,13 @@ else
     export TERM=xterm-256color
 fi
 
+# ~/.zshrc — attach/create tmux for interactive shells not already inside one.
+# Because an INTERACTIVE zsh launches tmux, the server inherits ~/.local/bin —
+# which also permanently fixes the sessionizer popup, no .zshenv reliance needed.
+if [[ -z "$TMUX" ]] && [[ -o interactive ]]; then
+  tmux new-session -A -s main
+fi
+
 # Fix SSH key permissions on container start.
 # Keys are volume-mounted from Windows host which doesn't preserve Unix permissions.
 if [ -f ~/.ssh/id_ed25519 ]; then

@@ -33,10 +33,9 @@ set -euo pipefail
 
 # ============================ Config (edit me) ============================
 NVIM_VERSION="v0.11.6"
-NVIM_CONFIG_REF="nvim-0.11.6-r17"
-NVIM_CONFIG_REPO="https://github.com/lavet13/nvim-lsp.git"
-DOTFILES_REPO="https://github.com/lavet13/debian-p10k-zsh.git"   # fallback if run standalone
-NOTES_REPO="https://github.com/lavet13/notes-obsidian.git"
+NVIM_CONFIG_REPO="git@github.com:lavet13/nvim-lsp.git"
+DOTFILES_REPO="https://github.com/lavet13/debian-p10k-zsh.git"   # keep HTTPS
+NOTES_REPO="git@github.com:lavet13/notes-obsidian.git"
 GIT_USER_NAME="lavet13"
 GIT_USER_EMAIL="lavet13@mail.ru"
 NODE_MAJOR="22"
@@ -63,12 +62,13 @@ cleanup() {
 }
 
 trap cleanup EXIT
+trap 'echo ">>> wsl-setup.sh failed at line $LINENO: $BASH_COMMAND" >&2' ERR
 
 # ============================ 1. System packages ==========================
 sudo apt-get update
 sudo apt-get install -y \
   zsh tmux fzf procps locales-all git curl ca-certificates \
-  ripgrep fd-find unzip shellcheck \
+  ripgrep fd-find unzip shellcheck info bash-doc \
   python3 python3-pip python3-venv \
   build-essential
 
@@ -118,6 +118,12 @@ else
   echo ">>> No Windows ~/.ssh found (WIN_USER='$WIN_USER'); skipping SSH copy."
 fi
 
+# Pre-trust github.com so the SSH clones in steps 7-8 don't hang on a
+# host-key prompt. ssh-keygen -F exits 0 if the host is already known.
+if ! ssh-keygen -F github.com >/dev/null 2>&1; then
+  ssh-keyscan github.com >> "$HOME/.ssh/known_hosts" 2>/dev/null
+fi
+
 # ============================ 6. Oh My Zsh + p10k + plugins ===============
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
   # unattended flag means stop launching only if OMZ is absent
@@ -131,17 +137,13 @@ ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 [ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || \
   git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 
-# ============================ 7. Neovim config (pinned ref) ===============
-# Clone if absent; otherwise fetch so a re-run can move to a newer pinned ref.
+# ============================ 7. Neovim config (live working copy) ===============
+# Clone if absent; clone leaves you on the default branch (main), ready to edit
+# and push. No tag checkout — this is a working copy, not a frozen snapshot.
 if [ ! -d "$HOME/.config/nvim/.git" ]; then
   mkdir -p "$HOME/.config"
   git clone "$NVIM_CONFIG_REPO" "$HOME/.config/nvim"
-else
-  git -C "$HOME/.config/nvim" fetch --tags --prune origin # learn new tags like r18
 fi
-
-# Always land on the pinned ref - runs on both fresh clone and update.
-git -C "$HOME/.config/nvim" checkout "$NVIM_CONFIG_REF"
 
 # ============================ 8. Notes (obsidian.nvim) ====================
 # Clone the notes repo; its folders are the obsidian.nvim workspaces.
@@ -173,7 +175,7 @@ cp "$DOTFILES/tmux-sessionizer" "$HOME/.local/bin/tmux-sessionizer"
 chmod +x "$HOME/.local/bin/tmux-sessionizer"
 # Strip any CRLF that rode along from Windows — zsh/tmux break silently on \r.
 sed -i 's/\r$//' "$HOME/.zshrc" "$HOME/.p10k.zsh" "$HOME/.tmux.conf" \
-  "$HOME/.local/bin/tmux-sessionizer"
+  "$HOME/.local/bin/tmux-sessionizer" "$HOME/.zshenv"
 mkdir -p "$HOME/workspace"   # tmux-sessionizer searches here
 
 # ============================ 10. pipx + CLIs =============================
@@ -182,8 +184,18 @@ python3 -m pip install --user --break-system-packages pipx
 "$HOME/.local/bin/pipx" install tldr || true   # already-installed exits non-zero
 "$HOME/.local/bin/pipx" install ruff || true   # already-installed exits non-zero
 
+# cheat.sh client: `cht.sh fd` → example-first docs, fuller than tldr.
+# The :cht.sh path returns the installer script itself.
+if [ ! -x "$HOME/.local/bin/cht.sh" ]; then
+  curl -fsSL https://cht.sh/:cht.sh -o "$HOME/.local/bin/cht.sh"
+  chmod +x "$HOME/.local/bin/cht.sh"
+fi
+
 # ============================ 11. Pre-warm Neovim =========================
-nvim --headless "+Lazy! sync" +qa 2>/dev/null || true
+# install plugins at the COMMITTED lockfile versions, no rewrite.
+# `restore` brings plugins to the lazy-lock.json state (lazy auto-installs any
+# missing ones on startup first); `sync` would UPDATE them and rewrite the lock.
+nvim --headless "+Lazy! restore" +qa 2>/dev/null || true
 nvim --headless \
   "+MasonInstall css-lsp eslint-lsp html-lsp intelephense json-lsp \
    lua-language-server prettier prisma-language-server pyright ruff \
@@ -193,9 +205,6 @@ nvim --headless \
 
 # ============================ 12. Default shell -> zsh ====================
 sudo chsh -s "$(command -v zsh)" "$USER"
-
-# ============================ Cleanup =====================================
-[ -n "$CLONED_DOTFILES" ] && rm -rf "$CLONED_DOTFILES"
 
 echo ""
 echo ">>> Done. Run 'wsl --shutdown' from PowerShell/CMD/MINGW64, then reopen Debian — you'll land in zsh."
