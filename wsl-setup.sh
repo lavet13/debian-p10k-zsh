@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 #
 # wsl-setup.sh — provision a fresh WSL Debian into my dev environment.
-# Adapted from the debian-p10k-zsh Dockerfile, minus Gemini.
 #
 # ----------------------------------------------------------------------------
 # PREREQUISITES (run these first on a fresh WSL Debian, before this script):
@@ -22,7 +21,6 @@
 # Differences from the Dockerfile (on purpose):
 #   - No FROM / USER juggling: WSL already created your sudo user.
 #   - No Docker engine: use Docker Desktop's WSL integration (note at bottom).
-#   - No Gemini CLI.
 #   - Copies SSH keys from Windows (the Dockerfile mounted them via compose).
 #
 # Safe to re-run: every step is guarded to skip or harmlessly reapply. The one
