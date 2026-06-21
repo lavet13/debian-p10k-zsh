@@ -1,16 +1,17 @@
+# Auto-start tmux for interactive TTY shells. MUST be ABOVE p10k's instant-prompt
+# block so tmux claims the real terminal first — otherwise "open terminal failed:
+# not a terminal" and p10k complains about console output during init.
+# `exec` replaces this zsh with tmux (clean: exit tmux = close the terminal).
+if [[ -z "$TMUX" ]] && [[ -o interactive ]] && [[ -t 1 ]] && command -v tmux &>/dev/null; then
+  exec tmux new-session -A -s main
+fi
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
-
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-# if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-#   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-# fi
 
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
@@ -136,20 +137,6 @@ if [[ -n "$TMUX" ]]; then
     export TERM=tmux-256color
 else
     export TERM=xterm-256color
-fi
-
-# ~/.zshrc — attach/create tmux for interactive shells not already inside one.
-# Because an INTERACTIVE zsh launches tmux, the server inherits ~/.local/bin —
-# which also permanently fixes the sessionizer popup, no .zshenv reliance needed.
-if [[ -z "$TMUX" ]] && [[ -o interactive ]]; then
-  tmux new-session -A -s main
-fi
-
-# Fix SSH key permissions on container start.
-# Keys are volume-mounted from Windows host which doesn't preserve Unix permissions.
-if [ -f ~/.ssh/id_ed25519 ]; then
-    chmod 600 ~/.ssh/id_ed25519 2>/dev/null
-    chmod 644 ~/.ssh/id_ed25519.pub 2>/dev/null
 fi
 
 # Always use the active python's pip, not the system one.
