@@ -164,16 +164,12 @@ else
 fi
 
 # ============================ 9. Dotfiles =================================
-cp "$DOTFILES/.zshrc"     "$HOME/.zshrc"
-cp "$DOTFILES/.zshenv"    "$HOME/.zshenv"
-cp "$DOTFILES/.p10k.zsh"  "$HOME/.p10k.zsh"
-cp "$DOTFILES/.tmux.conf" "$HOME/.tmux.conf"
+ln -sf "$DOTFILES/.zshrc"     "$HOME/.zshrc"
+ln -sf "$DOTFILES/.zshenv"    "$HOME/.zshenv"
+ln -sf "$DOTFILES/.p10k.zsh"  "$HOME/.p10k.zsh"
+ln -sf "$DOTFILES/.tmux.conf" "$HOME/.tmux.conf"
 mkdir -p "$HOME/.local/bin"
-cp "$DOTFILES/tmux-sessionizer" "$HOME/.local/bin/tmux-sessionizer"
-chmod +x "$HOME/.local/bin/tmux-sessionizer"
-# Strip any CRLF that rode along from Windows — zsh/tmux break silently on \r.
-sed -i 's/\r$//' "$HOME/.zshrc" "$HOME/.p10k.zsh" "$HOME/.tmux.conf" \
-  "$HOME/.local/bin/tmux-sessionizer" "$HOME/.zshenv"
+ln -sf "$DOTFILES/tmux-sessionizer" "$HOME/.local/bin/tmux-sessionizer"
 mkdir -p "$HOME/workspace"   # tmux-sessionizer searches here
 
 # ============================ 10. pipx + CLIs =============================
