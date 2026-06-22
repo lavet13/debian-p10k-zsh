@@ -1,8 +1,6 @@
-# Auto-start tmux for interactive TTY shells. MUST be ABOVE p10k's instant-prompt
-# block so tmux claims the real terminal first — otherwise "open terminal failed:
-# not a terminal" and p10k complains about console output during init.
-# `exec` replaces this zsh with tmux (clean: exit tmux = close the terminal).
-if [[ -z "$TMUX" ]] && [[ -o interactive ]] && [[ -t 1 ]] && command -v tmux &>/dev/null; then
+# Auto-start tmux for interactive TTY shells — UNLESS NO_TMUX is set (the
+# "no tmux" launch entry sets it). MUST stay ABOVE p10k's instant-prompt block.
+if [[ -z "$TMUX" ]] && [[ -z "${NO_TMUX:-}" ]] && [[ -o interactive ]] && [[ -t 1 ]] && command -v tmux &>/dev/null; then
   exec tmux new-session -A -s main
 fi
 

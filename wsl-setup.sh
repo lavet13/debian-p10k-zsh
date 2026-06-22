@@ -164,13 +164,22 @@ else
 fi
 
 # ============================ 9. Dotfiles =================================
-ln -sf "$DOTFILES/.zshrc"     "$HOME/.zshrc"
-ln -sf "$DOTFILES/.zshenv"    "$HOME/.zshenv"
-ln -sf "$DOTFILES/.p10k.zsh"  "$HOME/.p10k.zsh"
-ln -sf "$DOTFILES/.tmux.conf" "$HOME/.tmux.conf"
 mkdir -p "$HOME/.local/bin"
-ln -sf "$DOTFILES/tmux-sessionizer" "$HOME/.local/bin/tmux-sessionizer"
 mkdir -p "$HOME/workspace"   # tmux-sessionizer searches here
+
+if [[ -n "$CLONED_DOTFILES" ]]; then
+  cp "$DOTFILES/.zshrc"           "$HOME/.zshrc"
+  cp "$DOTFILES/.zshenv"          "$HOME/.zshenv"
+  cp "$DOTFILES/.p10k.zsh"        "$HOME/.p10k.zsh"
+  cp "$DOTFILES/.tmux.conf"       "$HOME/.tmux.conf"
+  cp "$DOTFILES/tmux-sessionizer" "$HOME/.local/bin/tmux-sessionizer"
+else
+  ln -sf "$DOTFILES/.zshrc"           "$HOME/.zshrc"
+  ln -sf "$DOTFILES/.zshenv"          "$HOME/.zshenv"
+  ln -sf "$DOTFILES/.p10k.zsh"        "$HOME/.p10k.zsh"
+  ln -sf "$DOTFILES/.tmux.conf"       "$HOME/.tmux.conf"
+  ln -sf "$DOTFILES/tmux-sessionizer" "$HOME/.local/bin/tmux-sessionizer"
+fi
 
 # ============================ 10. pipx + CLIs =============================
 python3 -m pip install --user --break-system-packages pipx
