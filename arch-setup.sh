@@ -78,7 +78,8 @@ sudo pacman -S --needed --noconfirm \
   ripgrep fd unzip shellcheck \
   python python-pip base-devel \
   nodejs npm tree-sitter-cli wl-clipboard \
-  ttf-cascadia-code wezterm
+  ttf-cascadia-code ttf-nerd-fonts-symbols-mono \
+  paru
 
 # 1b. Locale — your .zshrc forces LC_ALL=en_US.UTF-8, so make sure it's generated.
 if ! locale -a 2>/dev/null | grep -qi "en_US.utf8"; then
@@ -89,6 +90,7 @@ fi
 # ============================ 2. Node + corepack ==========================
 # Arch shipped a current Node in step 1, so no NodeSource setup — just enable
 # corepack for your Yarn 4 workflow.
+sudo pacman -S --needed --noconfirm corepack
 sudo corepack enable
 
 # ============================ 3. Neovim (pinned tarball) ==================
@@ -179,6 +181,14 @@ ln -sf "$DOTFILES/tmux-sessionizer" "$HOME/.local/bin/tmux-sessionizer"
 # folder ships inside your nvim-lsp repo. Symlink the themes dir so dofile()
 # resolves, but COPY + patch the .lua so the tracked repo stays pristine while
 # the live config points at a native shell instead of Windows Git Bash.
+
+# Nightly conflicts with the repo build — never both. -Rdd skips dep checks
+# since we replace it in the same breath.
+if ! pacman -Q wezterm-nightly-bin >/dev/null 2>&1; then
+  pacman -Q wezterm >/dev/null 2>&1 && sudo pacman -Rdd --noconfirm wezterm
+  paru -S --needed wezterm-nightly-bin
+fi
+
 ln -sf "$HOME/.config/nvim/.wezterm" "$HOME/.wezterm"
 if [ ! -f "$HOME/.wezterm.lua" ]; then
   cp "$HOME/.config/nvim/.wezterm/wezterm.lua" "$HOME/.wezterm.lua"
