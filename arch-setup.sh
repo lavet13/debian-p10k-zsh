@@ -165,6 +165,26 @@ else
   git -C "$HOME/notes" pull --ff-only
 fi
 
+# ======================= 8b. Normalize remotes to SSH ====================
+# git_url() falls back to HTTPS when no working key exists yet (chicken-and-egg
+# on a fresh box). Once the key IS working, rewrite the remotes so pushes use
+# SSH. Idempotent: re-running just re-sets the same URL.
+ssh_out="$(ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -T git@github.com 2>&1 || true)"
+if printf '%s' "$ssh_out" | grep -q "successfully authenticated"; then
+  for repo_pair in \
+    "$HOME/.config/nvim:$NVIM_CONFIG_REPO" \
+    "$HOME/notes:$NOTES_REPO" \
+    "$SCRIPT_DIR:$DOTFILES_REPO"; do
+    dir="${repo_pair%%:*}"
+    slug="${repo_pair#*:}"
+    [ -d "$dir/.git" ] || continue
+    git -C "$dir" remote set-url origin "git@github.com:${slug}.git"
+  done
+  echo ">>> Remotes set to SSH."
+else
+  echo ">>> SSH key not working yet — remotes left on HTTPS. Re-run after adding your key to GitHub."
+fi
+
 # ============================ 9. Dotfiles ================================
 # Your dotfiles are OS-agnostic (no /mnt/c, no fdfind, no clip.exe) — they
 # symlink onto Arch unchanged.
@@ -178,9 +198,9 @@ ln -sf "$DOTFILES/tmux-sessionizer" "$HOME/.local/bin/tmux-sessionizer"
 
 # ============================ 9b. WezTerm (native) ======================
 # WSL left WezTerm to the Windows host; on Arch it's a native app. The .wezterm
-# folder ships inside your nvim-lsp repo. Symlink the themes dir so dofile()
-# resolves, but COPY + patch the .lua so the tracked repo stays pristine while
-# the live config points at a native shell instead of Windows Git Bash.
+# folder ships inside the nvim-lsp repo, and wezterm.lua branches on
+# wezterm.target_triple, so the SAME file works on Windows and Linux — just
+# symlink it, no patching. Editing ~/.wezterm.lua edits the repo.
 
 # Nightly conflicts with the repo build — never both. -Rdd skips dep checks
 # since we replace it in the same breath.
@@ -189,16 +209,8 @@ if ! pacman -Q wezterm-nightly-bin >/dev/null 2>&1; then
   paru -S --needed wezterm-nightly-bin
 fi
 
-ln -sf "$HOME/.config/nvim/.wezterm" "$HOME/.wezterm"
-if [ ! -f "$HOME/.wezterm.lua" ]; then
-  cp "$HOME/.config/nvim/.wezterm/wezterm.lua" "$HOME/.wezterm.lua"
-  sed -i 's|default_prog = { "G:/Programs/Git/bin/bash.exe" },|default_prog = { "/usr/bin/zsh", "-l" },|' "$HOME/.wezterm.lua"
-  echo ">>> Patched ~/.wezterm.lua default_prog -> zsh."
-  echo ">>> NOTE: launch_menu still lists WSL entries — edit them if you use that"
-  echo "    dropdown (Ctrl+Shift+O). Replace wsl.exe args with:"
-  echo '      { label = "zsh (tmux)",    args = { "/usr/bin/zsh", "-l" } },'
-  echo '      { label = "zsh (no tmux)", args = { "env", "NO_TMUX=1", "zsh", "-li" } },'
-fi
+ln -sfn "$HOME/.config/nvim/.wezterm"            "$HOME/.wezterm"
+ln -sf "$HOME/.config/nvim/.wezterm/wezterm.lua" "$HOME/.wezterm.lua"
 
 # ============================ 10. pipx + CLIs ============================
 command -v pipx >/dev/null 2>&1 || sudo pacman -S --needed --noconfirm python-pipx
