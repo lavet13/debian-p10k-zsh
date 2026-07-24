@@ -1,9 +1,3 @@
-# Auto-start tmux for interactive TTY shells — UNLESS NO_TMUX is set (the
-# "no tmux" launch entry sets it). MUST stay ABOVE p10k's instant-prompt block.
-if [[ -z "$TMUX" ]] && [[ -z "${NO_TMUX:-}" ]] && [[ -o interactive ]] && [[ -t 1 ]] && command -v tmux &>/dev/null; then
-  exec tmux new-session -A -s main
-fi
-
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -141,6 +135,10 @@ fi
 # Fixes pip pointing to /usr/bin/pip even when inside a venv.
 alias pip='python3 -m pip'
 alias pip3='python3 -m pip'
+alias t='tmux new-session -A -s main'   # attach-or-create your "main" session
+alias notes='~/notes'
+alias nvc='~/.config/nvim'
+alias work='~/workspace'
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

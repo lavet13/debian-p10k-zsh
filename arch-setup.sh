@@ -254,7 +254,7 @@ if [ "$INSTALL_AMNEZIA" = "1" ]; then
 fi
 
 echo ""
-echo ">>> Done. Log out and back in (or reboot) — you'll land in zsh + tmux."
+echo ">>> Done. Log out and back in (or reboot) — you'll land in zsh (run tmux when you want it)."
 echo ">>> WinPodX (Word/Excel) stays a separate manual install — REVIEW its"
 echo "    script before running it:"
 echo "      curl -fsSL https://raw.githubusercontent.com/kernalix7/winpodx/main/install.sh -o winpodx.sh"
