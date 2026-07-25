@@ -133,12 +133,15 @@ fi
 
 # Always use the active python's pip, not the system one.
 # Fixes pip pointing to /usr/bin/pip even when inside a venv.
-alias pip='python3 -m pip'
-alias pip3='python3 -m pip'
+
+# Remove if it's arch, this is workaround for Debian
+# alias pip='python3 -m pip'
+# alias pip3='python3 -m pip'
+
 alias t='tmux new-session -A -s main'   # attach-or-create your "main" session
-alias notes='~/notes'
-alias nvc='~/.config/nvim'
-alias work='~/workspace'
+alias notes='cd ~/notes'
+alias nvc='cd ~/.config/nvim'
+alias work='cd ~/workspace'
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
