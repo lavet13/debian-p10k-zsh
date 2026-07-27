@@ -139,9 +139,12 @@ fi
 # alias pip3='python3 -m pip'
 
 alias t='tmux new-session -A -s main'   # attach-or-create your "main" session
-alias notes='cd ~/notes'
-alias nvc='cd ~/.config/nvim'
-alias work='cd ~/workspace'
+# alias notes='cd ~/notes'
+# alias nvc='cd ~/.config/nvim'
+# alias work='cd ~/workspace'
+hash -d notes=~/notes
+hash -d nvc=~/.config/nvim
+hash -d work=~/workspace
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
