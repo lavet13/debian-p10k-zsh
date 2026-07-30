@@ -239,7 +239,7 @@ fi
 
 # ============================ 13. Docker (native, optional) =============
 if [ "$INSTALL_DOCKER" = "1" ]; then
-  sudo pacman -S --needed --noconfirm docker docker-compose
+  sudo pacman -S --needed --noconfirm docker docker-compose docker-buildx
   sudo systemctl enable --now docker
   sudo usermod -aG docker "$USER"   # log out/in for the group to take effect
 fi

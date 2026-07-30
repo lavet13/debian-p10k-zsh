@@ -145,6 +145,9 @@ alias t='tmux new-session -A -s main'   # attach-or-create your "main" session
 hash -d notes=~/notes
 hash -d nvc=~/.config/nvim
 hash -d work=~/workspace
+hash -d dotfiles=~/workspace/debian-p10k-zsh/dotfiles
+hash -d music=~/yt/music
+hash -d video=~/yt/video
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
