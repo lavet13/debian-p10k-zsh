@@ -149,5 +149,30 @@ hash -d dotfiles=~/workspace/debian-p10k-zsh/dotfiles
 hash -d music=~/yt/music
 hash -d video=~/yt/video
 
+# Pack the current directory into repomix-output.xml via Docker.
+# "$@" forwards flags: repomix --style markdown  /  repomix --include "api/**"
+repomix() {
+  docker run -v "$PWD":/app -it --rm --user "$(id -u):$(id -g)" ghcr.io/yamadashy/repomix "$@"
+}
+
+# ts — jump to a named tmux session, creating it on demand.
+#   ts            → session named after the current directory
+#   ts donbass    → session named "donbass"
+# Complements `t` (always "main") and the prefix+f sessionizer.
+ts() {
+  local name="${1:-${PWD##*/}}"   # $1 if given, else the current dir's basename.
+                                  #   ${PWD##*/} strips the longest leading */ — pure-shell basename, no subprocess.
+  name="${name//./-}"             # tmux forbids '.' in session names (it's target syntax: sess:win.pane).
+                                  #   ${x//./-} replaces ALL '.' with '-' (// = global; / alone = first only). Matches your sessionizer's `tr . -`.
+  if [[ -n "$TMUX" ]]; then       # -n = "string non-empty"; $TMUX is set only when you're already inside tmux.
+    # If we are already in tmux
+    tmux new-session -ds "$name" 2>/dev/null  # -d detached, -s name: build it in the background if absent.
+                                              #   2>/dev/null swallows the "duplicate session" error when it already exists.
+    tmux switch-client -t "$name"             # -t target: move THIS client to it — the in-tmux "attach", no nesting warning.
+  else
+    tmux new-session -As "$name"              # -A attach-or-create, -s name: outside tmux, attach if it exists else make it.
+  fi
+}
+
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
