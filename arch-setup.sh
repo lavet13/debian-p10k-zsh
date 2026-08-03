@@ -212,6 +212,14 @@ fi
 ln -sfn "$HOME/.config/nvim/.wezterm"            "$HOME/.wezterm"
 ln -sf "$HOME/.config/nvim/.wezterm/wezterm.lua" "$HOME/.wezterm.lua"
 
+# ============================ 9c. KDE color scheme ======================
+# Naysayer.colors ships inside the nvim-lsp repo (arch/), same idea as .wezterm
+# above. Symlink it into KDE's scheme dir so System Settings > Colors lists it;
+# editing the repo file is editing the live scheme. The dir may not exist yet on
+# a fresh install, so create it first.
+mkdir -p "$HOME/.local/share/color-schemes"
+ln -sf "$HOME/.config/nvim/arch/Naysayer.colors" "$HOME/.local/share/color-schemes/Naysayer.colors"
+
 # ============================ 10. pipx + CLIs ============================
 command -v pipx >/dev/null 2>&1 || sudo pacman -S --needed --noconfirm python-pipx
 pipx install tldr 2>/dev/null || true   # already-installed exits non-zero
