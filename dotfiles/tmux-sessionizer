@@ -13,7 +13,7 @@ if [[ -z $selected ]]; then
 fi
 
 # Convert path to a valid tmux session name — no dots allowed.
-selected_name=$(basename "$selected" | tr . -)
+selected_name=$(basename -- "${selected//./-}")
 
 tmux_running=$(pgrep tmux)
 
