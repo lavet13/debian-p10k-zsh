@@ -229,8 +229,8 @@ sudo pacman -S --needed --noconfirm \
   sway swaybg swayidle swaylock waybar fuzzel foot wmenu \
   grim slurp wl-clipboard mako \
   yazi ffmpegthumbnailer poppler imagemagick \
-  trash-cli pavucontrol blueman \
-  gnome-themes-extra gsettings-desktop-schemas
+  trash-cli pavucontrol gnome-themes-extra \
+  gsettings-desktop-schemas
 
 # Configs live in the repo; symlink them into ~/.config so editing the repo IS
 # editing the live config. ln -sfn can't overwrite a non-empty dir, so move any
