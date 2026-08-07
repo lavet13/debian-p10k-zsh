@@ -235,12 +235,34 @@ sudo pacman -S --needed --noconfirm \
 # Configs live in the repo; symlink them into ~/.config so editing the repo IS
 # editing the live config. ln -sfn can't overwrite a non-empty dir, so move any
 # pre-existing REAL dir aside first — that also makes the swap reversible.
-for d in sway waybar fuzzel yazi; do
+for d in sway waybar fuzzel yazi mako; do
   if [ -d "$HOME/.config/$d" ] && [ ! -L "$HOME/.config/$d" ]; then
     mv "$HOME/.config/$d" "$HOME/.config/$d.bak"   # reverse: rm symlink, mv .bak back
   fi
   ln -sfn "$DOTFILES/config/$d" "$HOME/.config/$d"
 done
+
+# ==================== 9e. Session env + theming ========================
+# Qt apps + cursor must be set BEFORE the display manager hands off, so they go in
+# /etc/environment (PAM-level, read by every session — DM-independent). environment.d
+# was NOT enough: PLM doesn't feed the systemd --user env into the sway session.
+for kv in "QT_QPA_PLATFORMTHEME=kde" "XCURSOR_THEME=Adwaita" "XCURSOR_SIZE=24"; do
+  key="${kv%%=*}"                                    # strip =value → the KEY
+  grep -q "^${key}=" /etc/environment 2>/dev/null \
+    || echo "$kv" | sudo tee -a /etc/environment >/dev/null   # append only if absent
+done
+
+# GTK apps (waybar, Firefox…) read the cursor from gsettings, NOT /etc/environment —
+# so set that track too, or the cursor reverts to Breeze over the bar. Persists in dconf.
+gsettings set org.gnome.desktop.interface cursor-theme 'Adwaita'
+gsettings set org.gnome.desktop.interface cursor-size  24
+gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'   # GTK4/portal dark hint
+
+# GTK settings.ini cursor (belt-and-suspenders for GTK3 apps reading the file directly)
+sed -i 's/^gtk-cursor-theme-name=.*/gtk-cursor-theme-name=Adwaita/' ~/.config/gtk-3.0/settings.ini
+
+# Qt colours: reuse the KDE Naysayer scheme (needs plasma-integration, already present).
+plasma-apply-colorscheme Naysayer 2>/dev/null || true
 
 # ============================ 10. pipx + CLIs ============================
 command -v pipx >/dev/null 2>&1 || sudo pacman -S --needed --noconfirm python-pipx

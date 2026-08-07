@@ -1,3 +1,6 @@
+# Themes for Qt apps launched under sway
+exec_always systemctl --user set-environment QT_QPA_PLATFORMTHEME=kde
+
 # Default config for sway
 #
 # Copy this to ~/.config/sway/config and edit it to your liking.
@@ -106,6 +109,12 @@ input type:keyboard {
 
     # Exit sway (logs you out of your Wayland session)
     bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
+
+    # Power the computer off/reboot/suspend
+    bindsym $mod+Shift+p exec swaynag -t warning -m 'Power?' \
+        -B 'Shut down' 'systemctl poweroff' \
+        -B 'Reboot'    'systemctl reboot' \
+        -B 'Suspend'   'systemctl suspend'
 #
 # Moving around:
 #

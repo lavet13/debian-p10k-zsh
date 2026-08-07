@@ -1,0 +1,15 @@
+background-color=#062625
+text-color=#d0b892
+border-color=#3ad0b5
+border-size=2
+border-radius=4
+progress-color=over #0b3335
+
+font=Cascadia Mono 11
+padding=10
+margin=8
+default-timeout=5000
+anchor=top-right
+
+[urgency=high]
+border-color=#f92672
