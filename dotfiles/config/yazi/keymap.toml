@@ -2,7 +2,5 @@
 
 [mgr]
 prepend_keymap = [
-  # Y → put the hovered file on the clipboard AS A FILE (uri-list), pasteable into Telegram etc.
-  # %H = hovered file's URL (file://...). `--` = raw string, no shell escaping games.
-  { on = "Y", run = '''shell -- printf '%s' "%H" | wl-copy -t text/uri-list''', desc = "Copy file URI to clipboard" },
+  { on = "Y", run = '''shell -- ~/.config/yazi/copy-uri.sh %h''', desc = "Copy file:// URI to clipboard" },
 ]
