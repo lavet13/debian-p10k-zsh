@@ -1,0 +1,34 @@
+#:schema https://yazi-rs.github.io/schemas/yazi.json
+# Behaviour (not colours — those are in theme.toml). Merged over yazi's defaults.
+
+[mgr]
+show_hidden    = true     # show dotfiles
+sort_dir_first = true     # directories before files
+scrolloff      = 6        # keep 6 rows of context around the cursor (like nvim scrolloff)
+linemode       = "size"   # right-column info: file size ("none"/"mtime"/"permissions" also work)
+
+[preview]
+tab_size = 4
+
+[opener]
+# A named opener. `run` is the shell command; "$@" is where yazi injects the file paths.
+# block = true → yazi hands the terminal to nvim and returns here when you quit.
+edit = [
+  { run = 'nvim "$@"', block = true, desc = "Edit in nvim", for = "unix" },
+]
+# orphan = true (not block) is the key difference from the editor rule:
+# VLC is a GUI app, so it detaches and keeps playing even after you quit yazi,
+# and yazi doesn't freeze waiting on it.
+play = [
+  { run = 'vlc "$@"', orphan = true, desc = "Play in VLC", for = "unix" },
+]
+
+[open]
+# prepend_rules = higher priority than yazi's defaults. First match wins.
+# So o/Enter on any text file (or JSON) opens nvim via the "edit" opener above.
+prepend_rules = [
+  { mime = "text/*",           use = "edit" },
+  { mime = "application/json", use = "edit" },
+  { mime = "audio/*",          use = "play" },
+  { mime = "video/*",          use = "play" },
+]

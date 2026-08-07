@@ -220,6 +220,28 @@ ln -sf "$HOME/.config/nvim/.wezterm/wezterm.lua" "$HOME/.wezterm.lua"
 mkdir -p "$HOME/.local/share/color-schemes"
 ln -sf "$HOME/.config/nvim/arch/Naysayer.colors" "$HOME/.local/share/color-schemes/Naysayer.colors"
 
+# ==================== 9d. Sway / Wayland desktop ========================
+# Desktop stack from the KDE→sway migration. foot = fallback terminal AND
+# fuzzel's `terminal=` wrapper for Terminal=true apps (btop); wmenu kept as a
+# lightweight alt launcher. gnome-themes-extra + gsettings-desktop-schemas back
+# the system dark-mode (gsettings color-scheme prefer-dark).
+sudo pacman -S --needed --noconfirm \
+  sway swaybg swayidle swaylock waybar fuzzel foot wmenu \
+  grim slurp wl-clipboard mako \
+  yazi ffmpegthumbnailer poppler imagemagick \
+  trash-cli pavucontrol blueman \
+  gnome-themes-extra gsettings-desktop-schemas
+
+# Configs live in the repo; symlink them into ~/.config so editing the repo IS
+# editing the live config. ln -sfn can't overwrite a non-empty dir, so move any
+# pre-existing REAL dir aside first — that also makes the swap reversible.
+for d in sway waybar fuzzel yazi; do
+  if [ -d "$HOME/.config/$d" ] && [ ! -L "$HOME/.config/$d" ]; then
+    mv "$HOME/.config/$d" "$HOME/.config/$d.bak"   # reverse: rm symlink, mv .bak back
+  fi
+  ln -sfn "$DOTFILES/config/$d" "$HOME/.config/$d"
+done
+
 # ============================ 10. pipx + CLIs ============================
 command -v pipx >/dev/null 2>&1 || sudo pacman -S --needed --noconfirm python-pipx
 pipx install tldr 2>/dev/null || true   # already-installed exits non-zero

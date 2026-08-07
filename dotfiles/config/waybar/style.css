@@ -1,0 +1,321 @@
+/* Naysayer palette */
+@define-color bg    #062625;
+@define-color fg    #d0b892;
+@define-color teal  #3ad0b5;
+@define-color mint  #87ffde;
+@define-color hl    #0b3335;
+@define-color red   #f92672;
+
+* {
+    /* `otf-font-awesome` is required to be installed for icons */
+    font-family: FontAwesome, Roboto, Helvetica, Arial, sans-serif;
+    font-size: 13px;
+}
+
+window#waybar {
+    background-color: @bg;
+    border-bottom: 3px solid @hl;   /* subtle teal rule under the bar */
+    color: @fg;
+    transition-property: background-color;
+    transition-duration: .5s;
+}
+
+window#waybar.hidden {
+    opacity: 0.2;
+}
+
+window#waybar.termite {
+    background-color: @bg;
+}
+
+window#waybar.chromium {
+    background-color: @bg;
+    border: none;
+}
+
+button {
+    /* Use box-shadow instead of border so the text isn't offset */
+    box-shadow: inset 0 -3px transparent;
+    /* Avoid rounded borders under each button name */
+    border: none;
+    border-radius: 0;
+}
+
+/* https://github.com/Alexays/Waybar/wiki/FAQ#the-workspace-buttons-have-a-strange-hover-effect */
+button:hover {
+    background: inherit;
+    box-shadow: inset 0 -3px @teal;   /* teal underline on hover */
+}
+
+/* you can set a style on hover for any module like this */
+#pulseaudio:hover {
+    background-color: @hl;
+}
+
+#workspaces button {
+    padding: 0 5px;
+    background-color: transparent;
+    color: @fg;
+}
+
+#workspaces button:hover {
+    background: @hl;
+}
+
+#workspaces button.focused, #workspaces button.active {
+    background-color: @hl;
+    box-shadow: inset 0 -3px @mint;   /* focused workspace: mint underline */
+}
+
+#workspaces button.urgent {
+    background-color: @red;
+}
+
+#mode {
+    background-color: @hl;
+    box-shadow: inset 0 -3px @teal;
+}
+
+#clock,
+#battery,
+#cpu,
+#memory,
+#disk,
+#temperature,
+#backlight,
+#network,
+#pulseaudio,
+#wireplumber,
+#custom-media,
+#tray,
+#mode,
+#idle_inhibitor,
+#scratchpad,
+#power-profiles-daemon,
+#mpd {
+    padding: 0 10px;
+    color: @fg;                 /* default module text; flat @bg bar, identity via icons + accents */
+    background-color: @bg;
+}
+
+#window,
+#workspaces {
+    margin: 0 4px;
+}
+
+/* If workspaces is the leftmost module, omit left margin */
+.modules-left > widget:first-child > #workspaces {
+    margin-left: 0;
+}
+
+/* If workspaces is the rightmost module, omit right margin */
+.modules-right > widget:last-child > #workspaces {
+    margin-right: 0;
+}
+
+#clock {
+    color: @teal;               /* small accent so the clock reads at a glance */
+}
+
+#battery {
+    background-color: @bg;
+    color: @fg;
+}
+
+#battery.charging, #battery.plugged {
+    color: @teal;               /* good state */
+    background-color: @bg;
+}
+
+@keyframes blink {
+    to {
+        background-color: @red;
+        color: @bg;
+    }
+}
+
+/* Using steps() instead of linear as a timing function to limit cpu usage */
+#battery.critical:not(.charging) {
+    background-color: @bg;
+    color: @red;
+    animation-name: blink;
+    animation-duration: 0.5s;
+    animation-timing-function: steps(12);
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+#power-profiles-daemon {
+    padding-right: 15px;
+}
+
+#power-profiles-daemon.performance {
+    color: @red;
+}
+
+#power-profiles-daemon.balanced {
+    color: @teal;
+}
+
+#power-profiles-daemon.power-saver {
+    color: @mint;
+}
+
+label:focus {
+    background-color: @bg;
+}
+
+#cpu {
+    color: @mint;
+}
+
+#memory {
+    color: @teal;
+}
+
+#disk {
+    color: @fg;
+}
+
+#backlight {
+    color: @fg;
+}
+
+#network {
+    color: @teal;
+}
+
+#network.disconnected {
+    color: @red;
+}
+
+#pulseaudio {
+    color: @mint;
+}
+
+#pulseaudio.muted {
+    color: @red;
+}
+
+#wireplumber {
+    color: @mint;
+}
+
+#wireplumber.muted {
+    color: @red;
+}
+
+#custom-media {
+    color: @teal;
+    min-width: 100px;
+}
+
+#custom-media.custom-spotify {
+    color: @teal;
+}
+
+#custom-media.custom-vlc {
+    color: @mint;
+}
+
+#temperature {
+    color: @fg;
+}
+
+#temperature.critical {
+    color: @red;
+}
+
+#tray {
+    background-color: @bg;
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+    background-color: @red;
+}
+
+#idle_inhibitor {
+    color: @fg;
+}
+
+#idle_inhibitor.activated {
+    color: @mint;
+}
+
+#mpd {
+    color: @teal;
+}
+
+#mpd.disconnected {
+    color: @red;
+}
+
+#mpd.stopped {
+    color: @fg;
+}
+
+#mpd.paused {
+    color: @fg;
+}
+
+#language {
+    color: @teal;
+    padding: 0 5px;
+    margin: 0 5px;
+    min-width: 16px;
+}
+
+#keyboard-state {
+    color: @fg;
+    padding: 0 0px;
+    margin: 0 5px;
+    min-width: 16px;
+}
+
+#keyboard-state > label {
+    padding: 0 5px;
+}
+
+#keyboard-state > label.locked {
+    background: @hl;
+}
+
+#scratchpad {
+    background: @bg;
+}
+
+#scratchpad.empty {
+	background-color: transparent;
+}
+
+#privacy {
+    padding: 0;
+}
+
+#privacy-item {
+    padding: 0 5px;
+    color: @fg;
+}
+
+#privacy-item.screenshare {
+    color: @red;
+}
+
+#privacy-item.audio-in {
+    color: @teal;
+}
+
+#privacy-item.audio-out {
+    color: @mint;
+}
+
+#bluetooth               { color: @teal; }   /* on, idle */
+#bluetooth.connected     { color: @mint; }   /* something paired */
+#bluetooth.off,
+#bluetooth.disabled      { color: @fg; }      /* radio off — muted */
+#bluetooth.no-controller { color: @red; }     /* adapter missing */

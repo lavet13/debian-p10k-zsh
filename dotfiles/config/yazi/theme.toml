@@ -1,0 +1,52 @@
+#:schema https://yazi-rs.github.io/schemas/theme.json
+# Naysayer overrides for yazi 26.5.6. Merged over yazi's built-in dark theme.
+# Colors are "#RRGGBB". Keys verified against the 26.5.6 theme.toml docs.
+
+[mgr]
+cwd = { fg = "#3ad0b5" }                                # current-directory path (teal)
+
+find_keyword  = { fg = "#87ffde", bold = true, italic = true, underline = true }
+find_position = { fg = "#f92672", bg = "reset", bold = true, italic = true }
+
+marker_selected = { fg = "#3ad0b5", bg = "#3ad0b5" }
+marker_copied   = { fg = "#53d549", bg = "#53d549" }
+marker_cut      = { fg = "#f92672", bg = "#f92672" }
+
+border_style = { fg = "#126367" }                       # muted-teal pane dividers
+
+[tabs]
+active   = { fg = "#062625", bg = "#3ad0b5" }
+inactive = { fg = "#d0b892", bg = "#0b3335" }
+
+[mode]
+# _main = the NOR/SEL/UNS chip; _alt = the segment beside it (size, position) that was invisible
+normal_main = { fg = "#062625", bg = "#3ad0b5", bold = true }
+normal_alt  = { fg = "#3ad0b5", bg = "#0b3335" }
+select_main = { fg = "#062625", bg = "#87ffde", bold = true }
+select_alt  = { fg = "#87ffde", bg = "#0b3335" }
+unset_main  = { fg = "#062625", bg = "#f92672", bold = true }
+unset_alt   = { fg = "#f92672", bg = "#0b3335" }
+
+[status]
+# The bottom bar. `overall` is the base; segments (mode chip, perms, progress) sit on top.
+overall    = { fg = "#d0b892", bg = "#0b3335" }         # tan text on muted-teal — the readability fix
+perm_type  = { fg = "#3ad0b5" }                         # d / - / l  type char
+perm_read  = { fg = "#e6db74" }                         # r
+perm_write = { fg = "#f92672" }                         # w
+perm_exec  = { fg = "#53d549" }                         # x
+perm_sep   = { fg = "#126367" }                         # the "-" gaps
+progress_label  = { fg = "#d0b892", bold = true }
+progress_normal = { fg = "#3ad0b5", bg = "#0b3335" }
+progress_error  = { fg = "#f92672", bg = "#0b3335" }
+
+[filetype]
+# Rules match TOP-TO-BOTTOM, first hit wins. Key is `url` (path glob) or `mime` —
+# NOT `name`.  url = "*" = all files,  url = "*/" = all directories. Catch-all LAST.
+rules = [
+  { url = "*/",       fg = "#66d9ef" },   # directories (blue)
+  { mime = "image/*", fg = "#87ffde" },   # images (mint)
+  { mime = "video/*", fg = "#e6db74" },   # video (yellow)
+  { mime = "audio/*", fg = "#e6db74" },   # audio (yellow)
+  { url = "*.md",     fg = "#3ad0b5" },   # markdown (teal)
+  { url = "*",        fg = "#d0b892" },   # everything else (tan) — KEEP LAST
+]

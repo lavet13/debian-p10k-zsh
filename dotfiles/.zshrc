@@ -148,6 +148,11 @@ hash -d work=~/workspace
 hash -d dotfiles=~/workspace/debian-p10k-zsh/dotfiles
 hash -d music=~/yt/music
 hash -d video=~/yt/video
+hash -d yazi=~/.config/yazi
+hash -d waybar=~/.config/waybar
+hash -d fuzzer=~/.config/fuzzer
+hash -d sway=~/.config/sway
+hash -d media=~/.media
 
 # Pack the current directory into repomix-output.xml via Docker.
 # "$@" forwards flags: repomix --style markdown  /  repomix --include "api/**"
