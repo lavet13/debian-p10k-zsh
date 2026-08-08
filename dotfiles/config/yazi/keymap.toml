@@ -2,5 +2,6 @@
 
 [mgr]
 prepend_keymap = [
-  { on = "Y", run = '''shell -- ~/.config/yazi/copy-uri.sh %h''', desc = "Copy file:// URI to clipboard" },
+  { on = "Y", run = '''shell -- ~/.config/yazi/copy-uri.sh "$@"''', desc = "Copy file:// URI(s)" },
+  { on = "P", run = '''shell --block -- env | grep -iE 'yazi|select|hover' ; read''', desc = "probe env" },
 ]

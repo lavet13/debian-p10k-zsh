@@ -5,7 +5,7 @@ border-size=2
 border-radius=4
 progress-color=over #0b3335
 
-font=Cascadia Mono 11
+font=CaskaydiaMono Nerd Font 11
 padding=10
 margin=8
 default-timeout=5000

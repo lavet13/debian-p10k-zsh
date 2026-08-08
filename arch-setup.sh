@@ -73,13 +73,13 @@ git_url() {
 # `fdfind` — one fewer alias to carry), build-essential->base-devel,
 # python3/-pip/-venv -> python/python-pip (venv is built in). locales-all has no
 # Arch package — handled by locale-gen just below. Extras Arch needs that WSL got
-# from the Windows host: wezterm, ttf-cascadia-code, wl-clipboard, tree-sitter-cli.
+# from the Windows host: wezterm, ttf-cascadia-code-nerd, wl-clipboard, tree-sitter-cli.
 sudo pacman -S --needed --noconfirm \
   zsh tmux fzf procps-ng git curl ca-certificates \
   ripgrep fd unzip shellcheck \
   python python-pip base-devel \
   nodejs npm tree-sitter-cli wl-clipboard \
-  ttf-cascadia-code ttf-nerd-fonts-symbols-mono \
+  ttf-cascadia-code-nerd ttf-nerd-fonts-symbols-mono \
   paru
 
 # 1b. Locale — your .zshrc forces LC_ALL=en_US.UTF-8, so make sure it's generated.

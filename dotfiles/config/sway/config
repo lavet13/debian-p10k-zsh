@@ -51,7 +51,13 @@ output HDMI-A-1 mode 1920x1080@200Hz
 exec swayidle -w \
     timeout 300 'swaymsg "output * power off"' resume 'swaymsg "output * power on"' \
     timeout 900 'systemctl suspend' \
-    before-sleep 'swaylock -f -c 000000'
+    before-sleep 'swaylock -f \
+  --color 062625 \
+  --inside-color 0b3335 --ring-color 3ad0b5 \
+  --key-hl-color 87ffde --text-color d0b892 \
+  --line-color 062625 --separator-color 062625 \
+  --inside-ver-color 126367 --ring-ver-color 87ffde \
+  --inside-wrong-color 3d1520 --ring-wrong-color f92672'
 
 ### Input configuration
 #
