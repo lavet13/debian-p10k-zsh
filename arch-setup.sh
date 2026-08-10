@@ -264,17 +264,23 @@ done
 gsettings set org.gnome.desktop.interface cursor-theme 'Adwaita'            || true
 gsettings set org.gnome.desktop.interface cursor-size  24                   || true
 gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'        || true  # GTK4/portal dark hint
+gsettings set org.gnome.desktop.interface gtk-theme 'Breeze-Dark'           || true
 
 # KDE's own cursor source (kcminputrc) — align it too, or kded6's cursor-sync module
 # reads Breeze from here and clobbers gsettings back to breeze_cursors on next load.
 kwriteconfig6 --file kcminputrc --group Mouse --key cursorTheme Adwaita || true
 
-# GTK settings.ini cursor (belt-and-suspenders for GTK3 apps reading the file directly).
-# Guard per-file: on a fresh install these may not exist yet, and `sed -i` on a missing
-# file exits non-zero — which under set -e would kill the whole run (2>/dev/null hides
-# only the message, not the exit code).
+# GTK settings.ini (belt-and-suspenders — GTK3/GTK4 apps read this file directly, and it
+# OVERRIDES gsettings for the theme name, so set it here too). Guard per-file: on a fresh
+# install these may not exist yet, and `sed -i` on a missing file exits non-zero — which
+# under set -e would kill the run (2>/dev/null hides the message, not the exit code).
 for ini in ~/.config/gtk-3.0/settings.ini ~/.config/gtk-4.0/settings.ini; do
-  [ -f "$ini" ] && sed -i 's/^gtk-cursor-theme-name=.*/gtk-cursor-theme-name=Adwaita/' "$ini"
+  [ -f "$ini" ] || continue
+  sed -i 's/^gtk-cursor-theme-name=.*/gtk-cursor-theme-name=Adwaita/' "$ini"
+  sed -i 's/^gtk-theme-name=.*/gtk-theme-name=Breeze-Dark/'           "$ini"
+  grep -q '^gtk-application-prefer-dark-theme=' "$ini" \
+    && sed -i 's/^gtk-application-prefer-dark-theme=.*/gtk-application-prefer-dark-theme=true/' "$ini" \
+    || printf 'gtk-application-prefer-dark-theme=true\n' >> "$ini"
 done
 
 # Qt colours: reuse the KDE Naysayer scheme (needs plasma-integration, installed in 9d).
