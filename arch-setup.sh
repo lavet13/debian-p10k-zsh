@@ -79,7 +79,7 @@ sudo pacman -S --needed --noconfirm \
   ripgrep fd unzip shellcheck \
   python python-pip base-devel \
   nodejs npm tree-sitter-cli wl-clipboard \
-  ttf-cascadia-code-nerd ttf-nerd-fonts-symbols-mono \
+  ttf-cascadia-mono-nerd ttf-nerd-fonts-symbols-mono \
   paru
 
 # 1b. Locale — your .zshrc forces LC_ALL=en_US.UTF-8, so make sure it's generated.
@@ -264,7 +264,7 @@ done
 gsettings set org.gnome.desktop.interface cursor-theme 'Adwaita'            || true
 gsettings set org.gnome.desktop.interface cursor-size  24                   || true
 gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'        || true  # GTK4/portal dark hint
-gsettings set org.gnome.desktop.interface gtk-theme 'Breeze-Dark'           || true
+gsettings set org.gnome.desktop.interface gtk-theme 'Breeze'                || true
 
 # KDE's own cursor source (kcminputrc) — align it too, or kded6's cursor-sync module
 # reads Breeze from here and clobbers gsettings back to breeze_cursors on next load.
@@ -277,7 +277,7 @@ kwriteconfig6 --file kcminputrc --group Mouse --key cursorTheme Adwaita || true
 for ini in ~/.config/gtk-3.0/settings.ini ~/.config/gtk-4.0/settings.ini; do
   [ -f "$ini" ] || continue
   sed -i 's/^gtk-cursor-theme-name=.*/gtk-cursor-theme-name=Adwaita/' "$ini"
-  sed -i 's/^gtk-theme-name=.*/gtk-theme-name=Breeze-Dark/'           "$ini"
+  sed -i 's/^gtk-theme-name=.*/gtk-theme-name=Breeze/'                "$ini"
   grep -q '^gtk-application-prefer-dark-theme=' "$ini" \
     && sed -i 's/^gtk-application-prefer-dark-theme=.*/gtk-application-prefer-dark-theme=true/' "$ini" \
     || printf 'gtk-application-prefer-dark-theme=true\n' >> "$ini"
