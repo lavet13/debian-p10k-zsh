@@ -245,7 +245,16 @@ for d in sway waybar fuzzel yazi mako; do
   ln -sfn "$DOTFILES/config/$d" "$HOME/.config/$d"
 done
 
-# ==================== 9e. Session env + theming ========================
+# ==================== 9e. Fontconfig monospace override =================
+# Make the generic `monospace` resolve to CaskaydiaMono, matching the terminal/bar.
+# PER-FILE symlink on purpose: ~/.config/fontconfig is shared with KDE, which
+# auto-writes fonts.conf there — symlinking the whole dir (like 9d) would let KDE
+# clobber the repo. So we link only our one conf.d file and leave fonts.conf alone.
+mkdir -p "$HOME/.config/fontconfig/conf.d"
+ln -sf "$DOTFILES/config/fontconfig/conf.d/10-monospace-cascadia.conf" \
+       "$HOME/.config/fontconfig/conf.d/10-monospace-cascadia.conf"
+
+# ==================== 9f. Session env + theming ========================
 # Meant to run from within a graphical session (needs a session bus for gsettings/
 # plasma-apply). The `|| true` guards keep a bare-TTY run from aborting under set -e.
 
