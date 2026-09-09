@@ -114,13 +114,12 @@
   },
   "bluetooth": {
     "format": " {status}",
-    "on-click": "kcmshell6 kcm_bluetooth",
+    "on-click": "wezterm start --class floating-center -- bluetui",
     "tooltip-format": "{controller_alias}\n{num_connections} connected"
   },
   "clock": {
-    // "timezone": "America/New_York",
     "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-    "format-alt": "{:%Y-%m-%d}"
+    "format-alt": "{:%d-%m-%Y}"
   },
   "cpu": {
     "format": "{usage}% ",
@@ -197,7 +196,8 @@
     "tooltip-format": "{ifname} via {gwaddr} ",
     "format-linked": "{ifname} (No IP) ",
     "format-disconnected": "Disconnected ⚠",
-    "format-alt": "{ifname}: {ipaddr}/{cidr}"
+    "format-alt": "{ifname}: {ipaddr}/{cidr}",
+    "on-click-right": "wezterm start --class floating-center -- impala"
   },
   "pulseaudio": {
     // "scroll-step": 1, // %, can be a float

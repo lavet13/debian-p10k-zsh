@@ -14,13 +14,13 @@ tab_size = 4
 # A named opener. `run` is the shell command; "$@" is where yazi injects the file paths.
 # block = true → yazi hands the terminal to nvim and returns here when you quit.
 edit = [
-  { run = 'nvim "$@"', block = true, desc = "Edit in nvim", for = "unix" },
+  { run = 'nvim %s', block = true, desc = "Edit in nvim", for = "unix" },
 ]
 # orphan = true (not block) is the key difference from the editor rule:
 # VLC is a GUI app, so it detaches and keeps playing even after you quit yazi,
 # and yazi doesn't freeze waiting on it.
 play = [
-  { run = 'vlc "$@"', orphan = true, desc = "Play in VLC", for = "unix" },
+  { run = 'vlc %s', orphan = true, desc = "Play in VLC", for = "unix" },
 ]
 
 [open]

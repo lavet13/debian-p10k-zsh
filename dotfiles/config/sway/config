@@ -94,8 +94,8 @@ input type:keyboard {
     # Start a terminal
     bindsym $mod+Return exec $term
 
-    # a wezterm window running yazi
-    bindsym $mod+n exec $term -- yazi     # Super+n → a wezterm window running yazi
+    # Super+n: wezterm window running yazi
+    bindsym $mod+n exec $term -- yazi
 
     # Kill focused window
     bindsym $mod+Shift+q kill
@@ -112,6 +112,13 @@ input type:keyboard {
 
     # Reload the configuration file
     bindsym $mod+Shift+c reload
+
+    # Reload waybar
+    bindsym $mod+Shift+b exec killall -SIGUSR2 waybar
+
+    # Connectivity TUIs as centered floating popups
+    bindsym $mod+i       exec wezterm --config initial_cols=110 --config initial_rows=34 start --class floating-center --always-new-process -- impala
+    bindsym $mod+Shift+i exec wezterm --config initial_cols=110 --config initial_rows=34 start --class floating-center --always-new-process -- bluetui
 
     # Exit sway (logs you out of your Wayland session)
     bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
@@ -273,6 +280,9 @@ client.focused_inactive #0b3335 #062625 #d0b892 #0b3335 #0b3335
 client.unfocused        #0b3335 #062625 #53d549 #0b3335 #0b3335
 client.urgent           #f92672 #062625 #ffffff #f92672 #f92672
 
-default_border pixel 2   # thin frame, no title bar (use "normal" to get title bars)
+# thin frame, no title bar (use "normal" to get title bars)
+default_border pixel 2
+
+for_window [app_id="floating-center"] floating enable, move position center
 
 include /etc/sway/config.d/*

@@ -180,5 +180,24 @@ ts() {
   fi
 }
 
+# clipfiles — copy one or more files to the Wayland clipboard AS FILES,
+#   so you can paste them into Telegram Desktop / Discord (not just their paths).
+#   Usage:  clipfiles song.mp3          (one file)
+#           clipfiles ~music/*.mp3       (a glob — the shell expands it into the arg list)
+clipfiles() {
+  (( $# )) || { print -u2 "clipfiles: no files given"; return 1; } # bail if zero. -u2 = write to fd 2 (stderr).
+  local -a paths   # -a = declare an array; one absolute path per file goes in here.
+  local f
+  for f in "$@"; do
+    paths+=( "${f:a}" )   # :a = absolutize (no symlink resolve); :A also resolves symlinks.
+  done
+  # Percent-encode each path and emit one file:// URI per line (CRLF, per text/uri-list).
+  # quote() encodes spaces/#/UTF-8 bytes but keeps '/', and passing paths as argv keeps
+  # names with spaces or newlines intact (each is its own argument).
+  python3 -c 'import sys, urllib.parse
+for p in sys.argv[1:]:
+    sys.stdout.write("file://" + urllib.parse.quote(p) + "\r\n")' "${paths[@]}" | wl-copy -t text/uri-list
+}
+
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

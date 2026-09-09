@@ -232,6 +232,7 @@ sudo pacman -S --needed --noconfirm \
   sway swaybg swayidle swaylock waybar fuzzel foot wmenu \
   grim slurp wl-clipboard mako \
   yazi ffmpegthumbnailer poppler imagemagick \
+  impala bluetui \
   trash-cli pavucontrol gnome-themes-extra gsettings-desktop-schemas \
   kde-gtk-config breeze-gtk plasma-integration xdg-desktop-portal-gtk
 
