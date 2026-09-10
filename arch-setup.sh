@@ -239,7 +239,7 @@ sudo pacman -S --needed --noconfirm \
 # Configs live in the repo; symlink them into ~/.config so editing the repo IS
 # editing the live config. ln -sfn can't overwrite a non-empty dir, so move any
 # pre-existing REAL dir aside first — that also makes the swap reversible.
-for d in sway waybar fuzzel yazi mako; do
+for d in sway waybar fuzzel yazi mako wireplumber; do
   if [ -d "$HOME/.config/$d" ] && [ ! -L "$HOME/.config/$d" ]; then
     mv "$HOME/.config/$d" "$HOME/.config/$d.bak"   # reverse: rm symlink, mv .bak back
   fi
