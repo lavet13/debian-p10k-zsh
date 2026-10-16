@@ -57,7 +57,7 @@ exec swayidle -w \
   --key-hl-color 87ffde --text-color d0b892 \
   --line-color 062625 --separator-color 062625 \
   --inside-ver-color 126367 --ring-ver-color 87ffde \
-  --inside-wrong-color 3d1520 --ring-wrong-color f92672'
+  --inside-wrong-color 322633 --ring-wrong-color f92672'
 
 ### Input configuration
 #

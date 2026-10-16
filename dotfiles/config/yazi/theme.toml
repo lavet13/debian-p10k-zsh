@@ -1,52 +1,98 @@
 #:schema https://yazi-rs.github.io/schemas/theme.json
-# Naysayer overrides for yazi 26.5.6. Merged over yazi's built-in dark theme.
-# Colors are "#RRGGBB". Keys verified against the 26.5.6 theme.toml docs.
+# Naysayer overrides, merged over yazi's built-in dark theme. Colors are "#RRGGBB".
+# Hand-maintained mirror of nvim-lsp/lua/lavet13/palette.lua (TOML can't read
+# Lua): each value names the palette ROLE it copies, so a palette change is a
+# grep for that role here. Same meanings as Neovim:
+#   blue #0000ff = selected/picked · Monokai green = search · violet = pending
+#   tan mode-line = status/tab chips (Neovim StatusLine) · red = destructive
 
 [mgr]
-cwd = { fg = "#3ad0b5" }                                # current-directory path (teal)
+cwd = { fg = "#3ad0b5" } # strings (teal)
 
-find_keyword  = { fg = "#87ffde", bold = true, italic = true, underline = true }
-find_position = { fg = "#f92672", bg = "reset", bold = true, italic = true }
+# search hits in file names (/ and f): same as Neovim CurSearch
+find_keyword = { fg = "#062625", bg = "#a6e22e", bold = true }  # cur_search_fg / cur_search_bg
+find_position = { fg = "#a6e22e", bg = "reset", italic = true } # cur_search_bg as text: "[2/5]"
 
-marker_selected = { fg = "#3ad0b5", bg = "#3ad0b5" }
-marker_copied   = { fg = "#53d549", bg = "#53d549" }
-marker_cut      = { fg = "#f92672", bg = "#f92672" }
+# left-edge markers
+marker_selected = { fg = "#0000ff", bg = "#0000ff" } # selection (blue, like Visual)
+marker_marked = { fg = "#ae81ff", bg = "#ae81ff" }   # pending (violet): visual-mode pre-selection
+marker_copied = { fg = "#a6e22e", bg = "#a6e22e" }   # added (green)
+marker_cut = { fg = "#f92672", bg = "#f92672" }      # removed (red)
 
-border_style = { fg = "#126367" }                       # muted-teal pane dividers
+border_style = { fg = "#126367" } # line_fg (Neovim WinSeparator)
+
+[indicator]
+# the bar on the hovered row: a picked item, like Neovim PmenuSel / TelescopeSelection
+current = { fg = "#ffffff", bg = "#0000ff" } # keywords on selection
 
 [tabs]
-active   = { fg = "#062625", bg = "#3ad0b5" }
-inactive = { fg = "#d0b892", bg = "#0b3335" }
+# like Neovim TabLineSel / TabLine
+active = { fg = "#12251b", bg = "#d3b58e" }   # mode_line_fg / mode_line_bg
+inactive = { fg = "#126367", bg = "#062625" } # line_fg / bg
 
 [mode]
-# _main = the NOR/SEL/UNS chip; _alt = the segment beside it (size, position) that was invisible
-normal_main = { fg = "#062625", bg = "#3ad0b5", bold = true }
-normal_alt  = { fg = "#3ad0b5", bg = "#0b3335" }
-select_main = { fg = "#062625", bg = "#87ffde", bold = true }
-select_alt  = { fg = "#87ffde", bg = "#0b3335" }
-unset_main  = { fg = "#062625", bg = "#f92672", bold = true }
-unset_alt   = { fg = "#f92672", bg = "#0b3335" }
+# _main = the NOR/SEL/UNS chip; _alt = the segment beside it (size, position)
+normal_main = { fg = "#12251b", bg = "#d3b58e", bold = true } # mode_line (Neovim StatusLine)
+normal_alt = { fg = "#d0b892", bg = "#0b3335" }               # fg / highlight_line
+select_main = { fg = "#ffffff", bg = "#0000ff", bold = true } # selecting = selection blue
+select_alt = { fg = "#d0b892", bg = "#0b3335" }
+unset_main = { fg = "#062625", bg = "#f92672", bold = true }  # removing marks = removed red
+unset_alt = { fg = "#d0b892", bg = "#0b3335" }
 
 [status]
-# The bottom bar. `overall` is the base; segments (mode chip, perms, progress) sit on top.
-overall    = { fg = "#d0b892", bg = "#0b3335" }         # tan text on muted-teal — the readability fix
-perm_type  = { fg = "#3ad0b5" }                         # d / - / l  type char
-perm_read  = { fg = "#e6db74" }                         # r
-perm_write = { fg = "#f92672" }                         # w
-perm_exec  = { fg = "#53d549" }                         # x
-perm_sep   = { fg = "#126367" }                         # the "-" gaps
-progress_label  = { fg = "#d0b892", bold = true }
-progress_normal = { fg = "#3ad0b5", bg = "#0b3335" }
-progress_error  = { fg = "#f92672", bg = "#0b3335" }
+overall = { fg = "#d0b892", bg = "#0b3335" }         # fg / highlight_line (Neovim Pmenu)
+perm_type = { fg = "#3ad0b5" }                       # strings: d / - / l
+perm_read = { fg = "#e6db74" }                       # yellow: r
+perm_write = { fg = "#f92672" }                      # red: w
+perm_exec = { fg = "#a6e22e" }                       # green: x
+perm_sep = { fg = "#126367" }                        # line_fg: the "-" gaps
+progress_label = { fg = "#d0b892", bold = true }
+progress_normal = { fg = "#a6e22e", bg = "#0b3335" } # ok (green)
+progress_error = { fg = "#f92672", bg = "#0b3335" }  # error (red)
+
+# pop-ups: borders like Neovim FloatBorder, picked rows like PmenuSel
+[input]
+border = { fg = "#126367" }
+title = { fg = "#ffffff", bold = true }       # FloatTitle
+value = { fg = "#d0b892" }
+selected = { fg = "#ffffff", bg = "#0000ff" }
+
+[confirm]
+border = { fg = "#126367" }
+title = { fg = "#ffffff", bold = true }
+
+[pick]
+border = { fg = "#126367" }
+active = { fg = "#ffffff", bg = "#0000ff" }
+inactive = { fg = "#d0b892" }
+
+[cmp]
+border = { fg = "#126367" }
+active = { fg = "#ffffff", bg = "#0000ff" }
+inactive = { fg = "#d0b892" }
+
+[tasks]
+border = { fg = "#126367" }
+title = { fg = "#ffffff", bold = true }
+hovered = { fg = "#ffffff", bg = "#0000ff" }
+
+[help]
+border = { fg = "#126367" }
+hovered = { fg = "#ffffff", bg = "#0000ff" }
+
+[notify]
+title_info = { fg = "#66d9ef" }  # info (blue)
+title_warn = { fg = "#e6db74" }  # warning (yellow)
+title_error = { fg = "#f92672" } # error (red)
 
 [filetype]
-# Rules match TOP-TO-BOTTOM, first hit wins. Key is `url` (path glob) or `mime` —
-# NOT `name`.  url = "*" = all files,  url = "*/" = all directories. Catch-all LAST.
+# Rules match TOP-TO-BOTTOM, first hit wins. Key is `url` (path glob) or `mime`.
+# url = "*" = all files, url = "*/" = all directories. Catch-all LAST.
 rules = [
-  { url = "*/",       fg = "#66d9ef" },   # directories (blue)
-  { mime = "image/*", fg = "#87ffde" },   # images (mint)
-  { mime = "video/*", fg = "#e6db74" },   # video (yellow)
-  { mime = "audio/*", fg = "#e6db74" },   # audio (yellow)
-  { url = "*.md",     fg = "#3ad0b5" },   # markdown (teal)
-  { url = "*",        fg = "#d0b892" },   # everything else (tan) — KEEP LAST
+  { url = "*/", fg = "#8cde94" },       # punctuation: directories, like Neovim Directory (netrw)
+  { mime = "image/*", fg = "#87ffde" }, # constants (mint)
+  { mime = "video/*", fg = "#e6db74" }, # yellow
+  { mime = "audio/*", fg = "#e6db74" }, # yellow
+  { url = "*.md", fg = "#3ad0b5" },     # strings (teal)
+  { url = "*", fg = "#d0b892" },        # fg (tan): everything else — KEEP LAST
 ]
