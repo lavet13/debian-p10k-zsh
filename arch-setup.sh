@@ -111,6 +111,8 @@ fi
 # ============================ 4. Git identity =============================
 git config --global user.name  "$GIT_USER_NAME"
 git config --global user.email "$GIT_USER_EMAIL"
+git config --global init.defaultBranch main
+git config --global url."git@github.com:".pushInsteadOf "https://github.com/"
 git config --global core.autocrlf input
 # (Dropped `safe.directory '*'` — that only mattered across the Windows/WSL
 #  ownership boundary; on native ext4/btrfs everything is owned by you.)
