@@ -270,7 +270,6 @@ bindsym $mod+r mode "resize"
     bindsym $mod+p       exec grim - | wl-copy
 
 exec waybar
-exec sh -c "sleep 3 && AmneziaVPN"
 exec sh -c "sleep 3 && arch-update --tray"
 
 # --- Naysayer window colours ---
